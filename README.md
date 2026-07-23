@@ -17,7 +17,7 @@
 MITUR is a strong audit target for several reasons:
 
 - **Non-tech organization with public-facing web presence.** The brief explicitly calls out "non-tech companies" as a good source for performance audits — government ministries are the canonical example. Their web team optimizes for content delivery, not performance.
-- **Wide variety of content** — WordPress + YOAST SEO + WordPress Download Manager + custom post types (events, programs, statistics). The site mixes static pages (FAQ, institutional info), dynamic listings (news, downloads), interactive features (search, accordion FAQs), image-heavy content (news articles with photos), and data-heavy tables (tourism statistics).
+- **Wide variety of content** — WordPress + YOAST SEO + WordPress Download Manager + custom post types (events, programs, photo contests). The site mixes static pages (FAQ, institutional info), dynamic listings (news, downloads), interactive features (search, accordion FAQs, photo contest voting), and image-heavy content (news articles with photos, contest gallery).
 - **High-traffic, public-sector reach** — tourism ministry sites see seasonal traffic spikes (holidays, events, news announcements). Slow performance during peak events affects real-world outcomes.
 - **Image-heavy, multilingual candidate** — tourism promotion is image-first. The site carries many large hero images, gallery photos, and document downloads.
 - **Mixed CMS strategy** — WordPress with multiple plugins and shortcodes creates natural opportunities for render-blocking assets, late-injecting widgets, and unused CSS/JS — exactly the audit dimensions the course covers.
@@ -69,9 +69,6 @@ Dynamic WordPress category archive. **Why include:** tests the archive / paginat
 
 ### 3. News article (image-heavy) — [https://www.mitur.gob.sv/el-salvador-sera-sede-del-dia-mundial-del-turismo-2026/](https://www.mitur.gob.sv/el-salvador-sera-sede-del-dia-mundial-del-turismo-2026/)
 A single news post. **Why include:** tourism articles are image-first (hero photo, in-body gallery, captions). Tests the typical reading experience — does the article render the lead photo before scripts block, do related-post widgets inject late and shift layout, does the share bar add CLS?
-
-### 4. Photo contest (`/contest/`) — [https://www.mitur.gob.sv/contest/](https://www.mitur.gob.sv/contest/)
-Live tourism photo contest / voting feature. **Why include:** tests the only truly dynamic, interactive feature on the site — the gallery loads fresh content, voting triggers a form submission, and the layout shifts as more entries load. Real perf impact on a feature that visitors actually interact with. Also the *new* red page in the audit (perf 45) — was not in the original 8.
 
 ### 4. Photo contest (`/contest/`) — [https://www.mitur.gob.sv/contest/](https://www.mitur.gob.sv/contest/)
 Live tourism photo contest / voting feature. **Why include:** tests the only truly dynamic, interactive feature on the site — the gallery loads fresh content, voting triggers a form submission, and the layout shifts as more entries load. Real perf impact on a feature that visitors actually interact with. Also the *new* red page in the audit (perf 45) — was not in the original 8.
