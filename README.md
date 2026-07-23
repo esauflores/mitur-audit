@@ -35,7 +35,7 @@ _Note: CLS values vary significantly between runs (±50% or more) because the si
 | 1 | Homepage | **37** | 4.0 s | 6.6 s | 300 ms | **0.382** | 8.1 s | 11.5 s |
 | 2 | News listing (`/category/noticias/`) | 66 | 3.8 s | 4.6 s | 330 ms | 0.002 | 4.5 s | 8.4 s |
 | 3 | News article (image-heavy) | **43** | 3.8 s | 4.9 s | 230 ms | **1.855** | 4.6 s | 8.5 s |
-| 4 | Statistics (`/datos-estadisticos-de-turismo/`) | 68 | 3.5 s | 4.7 s | 280 ms | 0.018 | 4.4 s | 8.2 s |
+| 4 | Photo contest (`/contest/`) | **45** | 3.8 s | 6.3 s | 220 ms | **0.359** | 4.6 s | 7.8 s |
 | 5 | Downloads (`/descargas/`) | 64 | 4.0 s | 5.0 s | 260 ms | 0.002 | 5.9 s | 7.8 s |
 | 6 | FAQ (`/preguntas-frecuentes/`) | **45** | 3.8 s | 4.7 s | 220 ms | **0.928** | 4.3 s | 8.5 s |
 | 7 | Search results (`/?s=turismo`) | **34** | 3.7 s | 6.7 s | 240 ms | **2.236** | 6.4 s | 10.9 s |
@@ -45,12 +45,14 @@ _Note: CLS values vary significantly between runs (±50% or more) because the si
 
 | Vital | "Good" | "Needs improvement" | "Poor" | Pages in poor band |
 | --- | --- | --- | --- | --- |
-| Perf score | ≥ 90 | 50–89 | < 50 | 5 of 8 (homepage, article, FAQ, search, acceso-informacion) |
+| Perf score | ≥ 90 | 50–89 | < 50 | 6 of 8 (homepage, contest, article, FAQ, search, acceso-informacion) |
 | LCP | ≤ 2.5 s | 2.5–4.0 s | > 4.0 s | 8 of 8 |
-| CLS | ≤ 0.1 | 0.1–0.25 | > 0.25 | 4 of 8 (homepage, article, FAQ, search, acceso-informacion) |
+| CLS | ≤ 0.1 | 0.1–0.25 | > 0.25 | 6 of 8 (homepage, contest, article, FAQ, search, acceso-informacion) |
 | TBT | ≤ 200 ms | 200–600 ms | > 600 ms | 0 of 8 |
 
 **At least one page scores in the red band on every metric that matters.** The search page is the worst overall (perf 34, CLS 2.236) — meaningful because search is interactive and users expect results fast.
+
+_Statistics page excluded from "data-heavy" classification — it's a single manually-updated image (`estadisticas-abril.jpeg`), not live data. Captured separately for completeness; replaced in the 8-page audit by the photo contest (`/contest/`) which actually has dynamic interactive content._
 
 **CrUX field data (origin level, last 28 days):** not captured in this run — will be added in a later HW.
 **Methodology, per-page Lighthouse JSON, and full per-audit breakdown** — see `lighthouse/*.json`.
@@ -68,8 +70,11 @@ Dynamic WordPress category archive. **Why include:** tests the archive / paginat
 ### 3. News article (image-heavy) — [https://www.mitur.gob.sv/el-salvador-sera-sede-del-dia-mundial-del-turismo-2026/](https://www.mitur.gob.sv/el-salvador-sera-sede-del-dia-mundial-del-turismo-2026/)
 A single news post. **Why include:** tourism articles are image-first (hero photo, in-body gallery, captions). Tests the typical reading experience — does the article render the lead photo before scripts block, do related-post widgets inject late and shift layout, does the share bar add CLS?
 
-### 4. Statistics page — [https://www.mitur.gob.sv/datos-estadisticos-de-turismo/](https://www.mitur.gob.sv/datos-estadisticos-de-turismo/)
-Tourism statistics with data tables. **Why include:** data-heavy page tests how well tables and chart images render. Government statistics pages are often visited by journalists and researchers who expect to find data quickly.
+### 4. Photo contest (`/contest/`) — [https://www.mitur.gob.sv/contest/](https://www.mitur.gob.sv/contest/)
+Live tourism photo contest / voting feature. **Why include:** tests the only truly dynamic, interactive feature on the site — the gallery loads fresh content, voting triggers a form submission, and the layout shifts as more entries load. Real perf impact on a feature that visitors actually interact with. Also the *new* red page in the audit (perf 45) — was not in the original 8.
+
+### 4. Photo contest (`/contest/`) — [https://www.mitur.gob.sv/contest/](https://www.mitur.gob.sv/contest/)
+Live tourism photo contest / voting feature. **Why include:** tests the only truly dynamic, interactive feature on the site — the gallery loads fresh content, voting triggers a form submission, and the layout shifts as more entries load. Real perf impact on a feature that visitors actually interact with. Also the *new* red page in the audit (perf 45) — was not in the original 8.
 
 ### 5. Downloads — [https://www.mitur.gob.sv/descargas/](https://www.mitur.gob.sv/descargas/)
 WordPress Download Manager listing. **Why include:** tests a dynamic plugin (WPDM) that loads file metadata, sizes, and download buttons. Tests how third-party plugin code integrates with the site's main bundle.
@@ -89,12 +94,13 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 
 | Content type | Covered by |
 | --- | --- |
-| **Static** | FAQ (`/preguntas-frecuentes/`), access to public information (`/acceso-a-la-informacion-publica/`) |
-| **Dynamic listing** | News listing (`/category/noticias/`), downloads (`/descargas/`), statistics (`/datos-estadisticos-de-turismo/`) |
+| **Static** | FAQ (`/preguntas-frecuentes/`), access to public information (`/acceso-a-la-informacion-publica/`), statistics (`/datos-estadisticos-de-turismo/` — single image, manually updated) |
+| **Dynamic listing** | News listing (`/category/noticias/`), downloads (`/descargas/`) |
 | **Image-heavy single article** | News article (image-heavy) (`/el-salvador-sera-sede-del-dia-mundial-del-turismo-2026/`) |
+| **Live interactive feature** | Photo contest (`/contest/` — gallery + voting) |
 | **Interactive / search** | Search results (`/?s=turismo`) |
 | **Hero / carousel** | Homepage (`/`) |
-| **In-page loaders** (lazy-load, dynamic widgets) | Homepage (CLS evidence), search (CLS 2.236), FAQ (accordion) |
+| **In-page loaders** (lazy-load, dynamic widgets) | Homepage (CLS evidence), search (CLS 2.236), contest (CLS 0.359), FAQ (accordion) |
 | **Authentication** | Not applicable — site does not require login for primary content. The WordPress Download Manager may have a download-token flow, but it is not user-visible from the homepage. |
 
 **At least one page scores in the red band** — yes, 5 of 8 pages score < 50 on performance; 4 of 8 score > 0.25 on CLS. The search page is the worst-scoring at perf 34.
