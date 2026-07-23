@@ -1,0 +1,17 @@
+# Personal Project — MITUR Performance Audit
+# Captures site data for analysis
+
+# Generated Lighthouse reports (committed for the audit trail)
+lighthouse/
+
+# Run artifacts — local-only, regenerable
+/tmp/lh-mitur-*.json
+
+# Local Lighthouse profile
+/tmp/chromium-mitur/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
