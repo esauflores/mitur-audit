@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auditoría de Rendimiento del MITUR · Guía de Implementación</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,300;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              paper: "#f5f4ef",
+              paper2: "#eae9e2",
+              ink: "#14140e",
+              inksoft: "#5a5a50",
+              cobalt: "#1f3a8a",
+              bad: "#b3261e",
+              warn: "#c2410c",
+              ok: "#15803d",
+            },
+            fontFamily: {
+              display: ["Newsreader", "Georgia", "serif"],
+              body: ["Hanken Grotesk", "system-ui", "sans-serif"],
+              mono: ["DM Mono", "ui-monospace", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      html,
+      body,
+      .reveal {
+        background: #f5f4ef;
+        color: #14140e;
+        font-family: "Hanken Grotesk", system-ui, sans-serif;
+      }
+      .reveal em {
+        font-style: italic;
+        color: #1f3a8a;
+      }
+      .section-banner {
+        font-family: "DM Mono", ui-monospace, monospace;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        padding: 0.5rem 1.5rem;
+        border: 1px solid #1f3a8a;
+        color: #1f3a8a;
+        border-radius: 999px;
+        display: inline-block;
+      }
+      .codeblock {
+        font-family: "DM Mono", ui-monospace, monospace;
+        font-size: 0.7rem;
+        background: #14140e;
+        color: #eae9e2;
+        padding: 0.7rem 0.9rem;
+        border-radius: 6px;
+        white-space: pre-wrap;
+        line-height: 1.4;
+      }
+      .codeblock .c-tag { color: #f59e0b; }
+      .codeblock .c-key { color: #c4b5fd; }
+      .codeblock .c-str { color: #86efac; }
+      .codeblock .c-comment { color: #71717a; font-style: italic; }
+      .pill {
+        display: inline-block;
+        padding: 2px 10px;
+        font-size: 0.65rem;
+        font-family: "DM Mono", monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border-radius: 999px;
+      }
+      .pill-local { background: #15803d; color: #f5f4ef; }
+      .pill-build { background: #c2410c; color: #f5f4ef; }
+      .pill-process { background: #1f3a8a; color: #f5f4ef; }
+    </style>
+  </head>
+  <body>
+    <div
+      class="fixed inset-x-0 bottom-4 z-50 flex items-center justify-between border-t border-ink px-8 font-mono text-xs uppercase tracking-[0.18em] text-ink"
+    >
+      <span id="pageno">01 / 14</span>
+      <span id="sectionlabel">guía de implementación</span>
+      <span>FE413 · auditoría · 2026</span>
+    </div>
+
+    <div class="reveal">
+      <div class="slides">
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 1 · TÍTULO                                       -->
+        <!-- ============================================================ -->
+        <section data-section="título">
+          <div class="mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">guía de implementación</span>
+            <h1 class="max-w-3xl font-display text-6xl font-normal leading-[1.05]">
+              <em>¿Qué cambio</em>, y cómo sé que funcionó?
+            </h1>
+            <p class="max-w-2xl font-body text-xl text-inksoft">
+              18 PRs autocontenidos para el ingeniero que recoge la auditoría. Cada uno se puede publicar independientemente. Lee de arriba a abajo, o salta al que necesites.
+            </p>
+            <div class="flex items-center gap-3 pt-2">
+              <span class="section-banner">para el ingeniero · no para la reunión</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 2 · CÓMO USAR + COBERTURA                        -->
+        <!-- ============================================================ -->
+        <section data-section="cómo usar">
+          <div class="mx-auto flex max-w-5xl flex-col items-start gap-5 text-left">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">cómo usar esta guía</span>
+            <h2 class="font-display text-4xl font-normal leading-tight">
+              Elige el PR que necesites. <em>Cada uno se sostiene solo.</em>
+            </h2>
+            <div class="grid w-full grid-cols-2 gap-3 pt-2 font-mono text-sm">
+              <div class="rounded border border-ink bg-paper2 p-3"><span class="text-cobalt">instrucciones de un PR</span> → este documento, sección por PR</div>
+              <div class="rounded border border-ink bg-paper2 p-3"><span class="text-cobalt">evidencia de una afirmación</span> → findings.md, baseline.md</div>
+              <div class="rounded border border-ink bg-paper2 p-3"><span class="text-cobalt">por qué está priorizado</span> → prioritization.md</div>
+              <div class="rounded border border-ink bg-paper2 p-3"><span class="text-cobalt">herramientas de reproducción</span> → justfile + scripts/*.mjs</div>
+            </div>
+            <div class="mt-4 w-full rounded border border-bad bg-paper2 p-4">
+              <div class="font-mono text-xs uppercase tracking-widest text-bad">cobertura</div>
+              <p class="mt-2 text-sm">
+                <b>Cubierto:</b> 8 páginas auditadas, Lighthouse mobile, CWV, red, build outputs, coverage, frame chart, layers, estrategia de renderizado, terceros, amplificación mobile.
+              </p>
+              <p class="mt-1 text-sm">
+                <b>Omitido explícitamente:</b> PSI de escritorio, datos de campo CrUX, INP de campo, WPT filmstrip, a11y completa, categorías SEO/Best Practices.
+              </p>
+              <p class="mt-1 text-sm">
+                <b>Considerado, no aplicable:</b> offline / service worker (contenido perecedero), HTTP/3 (no anunciado), PWA (no es candidato), AMP (deprecado para no-noticias).
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 3 · HERRAMIENTAS                                 -->
+        <!-- ============================================================ -->
+        <section data-section="herramientas">
+          <div class="mx-auto flex max-w-5xl flex-col items-start gap-5 text-left">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">herramientas de reproducción</span>
+            <h2 class="font-display text-4xl font-normal leading-tight">
+              Recetas de <em>just</em>. Ejecuta antes de publicar. Ejecuta después.
+            </h2>
+            <table class="w-full font-mono text-sm">
+              <thead class="text-cobalt uppercase tracking-widest text-xs">
+                <tr class="border-b-2 border-ink">
+                  <th class="py-2 text-left">receta</th>
+                  <th class="py-2 text-left">qué hace</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-ink"><td class="py-2">just audit URL NAME</td><td class="py-2">Lighthouse de una página (mobile, throttling simulado)</td></tr>
+                <tr class="border-b border-ink"><td class="py-2">just audit-all</td><td class="py-2">las 8 páginas; JSON a lighthouse/*.json</td></tr>
+                <tr class="border-b border-ink"><td class="py-2">just report</td><td class="py-2">tabla markdown resumen de puntajes</td></tr>
+                <tr class="border-b border-ink"><td class="py-2">just build-capture</td><td class="py-2">JS / CSS / imágenes / carga de 3P</td></tr>
+                <tr class="border-b border-ink"><td class="py-2">just coverage-frames</td><td class="py-2">CSS crítico, JS/CSS sin usar, frame chart, layers</td></tr>
+                <tr class="border-b border-ink"><td class="py-2">just rendering-strategy</td><td class="py-2">SSR / CSR / edge-cache por página</td></tr>
+                <tr class="border-b border-ink"><td class="py-2">just clean</td><td class="py-2">limpia artefactos generados</td></tr>
+              </tbody>
+            </table>
+            <p class="text-sm text-inksoft">
+              Si un número en esta guía difiere de lo que mides, <b>no asumas que esta guía es correcta.</b> Re-ejecuta y actualiza.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 4 · FASE 1 — VISIÓN GENERAL                      -->
+        <!-- ============================================================ -->
+        <section data-section="fase 1">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 1 · semana 1</span>
+            <h2 class="font-display text-5xl font-normal leading-tight">
+              Ocho PRs. <em>1 ingeniero, 1 semana.</em>
+            </h2>
+            <div class="grid w-full grid-cols-2 gap-3 pt-2 text-left font-mono text-sm">
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">01</span>
+                <span>Caché HTML en el edge de Cloudflare</span>
+                <span class="pill pill-local ml-auto">5 min</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">02</span>
+                <span>Quitar el segundo jQuery</span>
+                <span class="pill pill-local ml-auto">5 min</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">03</span>
+                <span>Diferir 51 scripts; page-gating por plugin</span>
+                <span class="pill pill-local ml-auto">2 días</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">04</span>
+                <span>Quitar CSS admin del editor de bloques</span>
+                <span class="pill pill-local ml-auto">15 min</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">05</span>
+                <span>Pipeline de PurgeCSS</span>
+                <span class="pill pill-build ml-auto">1 día</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">06</span>
+                <span>Dimensiones en imágenes de tarjeta</span>
+                <span class="pill pill-local ml-auto">1 día</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">07</span>
+                <span>LCP fetchpriority + AVIF</span>
+                <span class="pill pill-local ml-auto">1 día</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">08</span>
+                <span>Page-gating de plugins por página (HTML)</span>
+                <span class="pill pill-local ml-auto">1 día</span>
+              </div>
+            </div>
+            <p class="font-body text-sm text-inksoft">
+              <b class="text-ink">Local en su mayoría.</b> Algunos PR (PurgeCSS, AVIF) tienen dependencia de paso de build.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 5 · PR 1 — CACHÉ HTML EN CLOUDFLARE               -->
+        <!-- ============================================================ -->
+        <section data-section="PR 1">
+          <div class="mx-auto flex max-w-6xl flex-col gap-3 text-left">
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 1 · PR 1</span>
+              <span class="pill pill-local">local · 5 min</span>
+            </div>
+            <h2 class="font-display text-3xl font-normal leading-tight">
+              <em>Caché HTML en el edge de Cloudflare</em>. 7 de 8 páginas son cacheables.
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">mecanismo</div>
+                <p class="text-sm">WordPress devuelve <code>cache-control: no-store</code> en cada respuesta. Cloudflare respeta esto y sirve el HTML como <code>DYNAMIC</code> para cada visita. Los assets estáticos se cachean al 89%; el HTML al 0%.</p>
+              </div>
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">el fix (dashboard de Cloudflare)</div>
+                <pre class="codeblock"><span class="c-comment">Rules → Page Rules → Create</span>
+URL: mitur.gob.sv/*
+Cache Level: Cache Everything
+Edge Cache TTL: 1 hour
+Browser Cache TTL: 5 min
+
+<span class="c-comment">+ segunda regla para bypass de caché en wp-admin / wp-login</span></pre>
+              </div>
+            </div>
+            <div class="rounded border border-ok bg-paper2 p-3 text-sm">
+              <b class="text-ok">Verificar:</b> <code>curl -sI https://www.mitur.gob.sv/ | grep cf-cache-status</code> debe mostrar <code>HIT</code> en la segunda petición. <b class="text-cobalt">Resultado esperado:</b> tasa de acierto de caché HTML 0% → 95%+. Las renderizaciones en el origen caen ~95%.
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 6 · PR 2 — QUITAR EL SEGUNDO JQUERY              -->
+        <!-- ============================================================ -->
+        <section data-section="PR 2">
+          <div class="mx-auto flex max-w-6xl flex-col gap-3 text-left">
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 1 · PR 2</span>
+              <span class="pill pill-local">local · 5 min</span>
+            </div>
+            <h2 class="font-display text-3xl font-normal leading-tight">
+              <em>Quita el segundo jQuery.</em> El tema trae 3.3.1, el core WP tiene 3.7.1.
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">mecanismo</div>
+                <p class="text-sm">El tema agrupa <code>jquery-3.3.1.js</code> (269 KB). El core de WP trae <code>jquery.min.js</code> (3.7.1, 30 KB). Ambos cargan sincrónicamente y ambos parsean + ejecutan. <b>~820 ms de CPU redundante por visita.</b></p>
+              </div>
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">el fix</div>
+                <pre class="codeblock"><span class="c-comment">// wp-content/themes/instituciones-child/functions.php</span>
+add_action(<span class="c-str">'wp_enqueue_scripts'</span>, <span class="c-key">function</span> () {
+    wp_dequeue_script(<span class="c-str">'instituciones-jquery-3.3.1'</span>);
+    <span class="c-comment">// (el handle puede variar; revisa el wp_enqueue_script del tema)</span>
+}, <span class="c-str">20</span>);  <span class="c-comment">// prioridad 20 = corre DESPUÉS del enqueue del tema</span></pre>
+              </div>
+            </div>
+            <div class="rounded border border-ok bg-paper2 p-3 text-sm">
+              <b class="text-ok">Verificar:</b> <code>curl -s https://www.mitur.gob.sv/ | grep -oE 'jquery[^"]*\.js' | sort -u</code> debe devolver <b>una</b> línea (solo el core WP). <b class="text-cobalt">Resultado esperado:</b> 820 ms de CPU recuperado en cada visita.
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 7 · PRs 3 + 8 — DIFERIR + PAGE-GATE              -->
+        <!-- ============================================================ -->
+        <section data-section="PR 3 / PR 8">
+          <div class="mx-auto flex max-w-6xl flex-col gap-3 text-left">
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 1 · PR 3 + PR 8</span>
+              <span class="pill pill-local">local · 3 días</span>
+            </div>
+            <h2 class="font-display text-3xl font-normal leading-tight">
+              <em>Diferir 51 scripts sync.</em> Page-gating por plugin.
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">PR 3 · diferir scripts (en functions.php)</div>
+                <pre class="codeblock">add_filter(<span class="c-str">'script_loader_tag'</span>, <span class="c-key">function</span> ($tag, $h) {
+  <span class="c-key">if</span> (in_array($h, [<span class="c-str">'jquery'</span>, <span class="c-str">'jquery-core'</span>])) <span class="c-key">return</span> $tag;
+  <span class="c-key">if</span> (strpos($tag, <span class="c-str">' defer'</span>) !== <span class="c-key">false</span>) <span class="c-key">return</span> $tag;
+  <span class="c-key">return</span> str_replace(<span class="c-str">' src='</span>, <span class="c-str">' defer src='</span>, $tag);
+}, <span class="c-str">10</span>, <span class="c-str">2</span>);</pre>
+              </div>
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">PR 8 · page-gating por plugin (functions.php)</div>
+                <pre class="codeblock">add_action(<span class="c-str">'wp_enqueue_scripts'</span>, <span class="c-key">function</span> () {
+  <span class="c-key">if</span> (!is_page(<span class="c-str">'contacto'</span>))
+    wp_dequeue_script(<span class="c-str">'contact-form-7'</span>);
+  <span class="c-key">if</span> (!is_singular(<span class="c-str">'photo_contest'</span>))
+    wp_dequeue_script(<span class="c-str">'smartslider3'</span>);
+  <span class="c-key">if</span> (!is_admin()) wp_dequeue_script(<span class="c-str">'plupload'</span>);
+  <span class="c-comment">// ... 5 plugins más por tipo de página</span>
+}, <span class="c-str">100</span>);</pre>
+              </div>
+            </div>
+            <p class="text-sm text-inksoft">
+              <b>O instala Perfmatters</b> (recomendado) — UI declarativa por página, sin PHP requerido.
+            </p>
+            <div class="rounded border border-ok bg-paper2 p-3 text-sm">
+              <b class="text-ok">Verificar:</b> <code>curl -s https://www.mitur.gob.sv/ | grep -oE '&lt;script[^&gt;]*src=[^&gt;]+&gt;&lt;/script&gt;' | wc -l</code> debe caer de 51 a ~5-10. <b class="text-cobalt">Resultado esperado:</b> TBT 300 ms → 150-200 ms; tamaño HTML 225 KB → 120 KB.
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 8 · PRs 4 + 5 — BLOCK-EDITOR + PURGECSS          -->
+        <!-- ============================================================ -->
+        <section data-section="PR 4 / PR 5">
+          <div class="mx-auto flex max-w-6xl flex-col gap-3 text-left">
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 1 · PR 4 + PR 5</span>
+              <span class="pill pill-local">local · 15 min</span>
+              <span class="pill pill-build">PR 5: build step · 1 día</span>
+            </div>
+            <h2 class="font-display text-3xl font-normal leading-tight">
+              <em>336 KB de CSS admin en páginas públicas.</em> Deja de enviarlo.
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">PR 4 · block-editor CSS (5 líneas de PHP)</div>
+                <pre class="codeblock">add_action(<span class="c-str">'wp_enqueue_scripts'</span>, <span class="c-key">function</span> () {
+  <span class="c-key">if</span> (is_admin()) <span class="c-key">return</span>;
+  wp_dequeue_style(<span class="c-str">'wp-block-library'</span>);
+  wp_dequeue_style(<span class="c-str">'wp-block-library-theme'</span>);
+  wp_dequeue_style(<span class="c-str">'wp-block-editor'</span>);
+  wp_dequeue_style(<span class="c-str">'wp-components'</span>);
+}, <span class="c-str">100</span>);</pre>
+              </div>
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">PR 5 · PurgeCSS (paso de build)</div>
+                <pre class="codeblock"><span class="c-comment"># script de package.json</span>
+<span class="c-str">"build:css"</span>: <span class="c-str">"purgecss --css theme/style.css
+  --content 'theme/**/*.php' --output dist/style.purged.css
+  --safelist theme-no-delete"</span>
+
+<span class="c-comment"># encola la versión purgada</span>
+wp_enqueue_style(<span class="c-str">'instituciones'</span>,
+  get_template_directory_uri() . <span class="c-str">'/../dist/style.purged.css'</span>);</pre>
+              </div>
+            </div>
+            <div class="rounded border border-ok bg-paper2 p-3 text-sm">
+              <b class="text-ok">Verificar:</b> <code>curl -s https://www.mitur.gob.sv/ | grep -E 'block-library|block-editor|components'</code> no debe devolver <b>nada</b>. <b class="text-cobalt">Resultado esperado:</b> 336 KB de CSS admin eliminados; 1.15 MB de CSS sin usar eliminado por PurgeCSS.
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 9 · PRs 6 + 7 — DIMENSIONES + LCP/AVIF            -->
+        <!-- ============================================================ -->
+        <section data-section="PR 6 / PR 7">
+          <div class="mx-auto flex max-w-6xl flex-col gap-3 text-left">
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 1 · PR 6 + PR 7</span>
+              <span class="pill pill-local">local · 2 días</span>
+            </div>
+            <h2 class="font-display text-3xl font-normal leading-tight">
+              <em>0 de 35 imágenes tienen dimensiones.</em> Añádelas, y fetchpriority.
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">PR 6 · dimensiones en la imagen de tarjeta (template.php)</div>
+                <pre class="codeblock">$thumb_id = get_post_thumbnail_id();
+$meta = wp_get_attachment_metadata($thumb_id);
+$url = wp_get_attachment_image_src(
+  $thumb_id, <span class="c-str">'card-large'</span>);
+?&gt;
+&lt;img src=<span class="c-str">"&lt;?= $url[0] ?&gt;"</span>
+     width=<span class="c-str">"&lt;?= $meta['width'] ?&gt;"</span>
+     height=<span class="c-str">"&lt;?= $meta['height'] ?&gt;"</span>
+     alt=<span class="c-str">"&lt;?= get_the_title() ?&gt;"</span>
+     loading=<span class="c-str">"lazy"</span>
+     decoding=<span class="c-str">"async"</span>&gt;</pre>
+              </div>
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">PR 7 · LCP fetchpriority + AVIF</div>
+                <pre class="codeblock"><span class="c-comment">// Solo en la imagen LCP:</span>
+&lt;img ... fetchpriority=<span class="c-str">"high"</span>
+          loading=<span class="c-str">"eager"</span>
+          decoding=<span class="c-str">"sync"</span>&gt;
+
+<span class="c-comment">// Dashboard de Cloudflare:
+Speed → Image Optimization
+  Polish = Lossy
+  WebP = ON  (cubre AVIF)</span></pre>
+              </div>
+            </div>
+            <div class="rounded border border-ok bg-paper2 p-3 text-sm">
+              <b class="text-ok">Verificar:</b> CLS 0.382 → ≤ 0.1; LCP 6.6 s → 2.5-3.5 s. Transferencia de imágenes 1.73 MB → 0.4 MB.
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 10 · CRITERIOS DE CIERRE FASE 1                  -->
+        <!-- ============================================================ -->
+        <section data-section="criterios fase 1">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 1 · criterios de cierre</span>
+            <h2 class="font-display text-4xl font-normal leading-tight">
+              Los 8 PRs mergeados = <em>6 de 8 páginas</em> fuera de la banda "pobre".
+            </h2>
+            <div class="grid w-full grid-cols-3 gap-4 pt-2">
+              <div class="rounded border border-bad bg-paper2 p-4">
+                <div class="font-mono text-xs uppercase tracking-widest text-bad">antes</div>
+                <div class="mt-1 font-display text-3xl text-ink">37 / 6.6 s / 0.382</div>
+                <div class="mt-1 font-mono text-[10px] uppercase tracking-widest text-inksoft">perf / LCP / CLS</div>
+              </div>
+              <div class="rounded border border-cobalt bg-paper2 p-4">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">después</div>
+                <div class="mt-1 font-display text-3xl text-ink">≥ 50 / 2.5-3.5 s / ≤ 0.1</div>
+                <div class="mt-1 font-mono text-[10px] uppercase tracking-widest text-inksoft">perf / LCP / CLS</div>
+              </div>
+              <div class="rounded border border-ok bg-paper2 p-4">
+                <div class="font-mono text-xs uppercase tracking-widest text-ok">titular</div>
+                <div class="mt-1 font-display text-3xl text-ok">6 de 8</div>
+                <div class="mt-1 font-mono text-[10px] uppercase tracking-widest text-inksoft">páginas fuera de "pobre"</div>
+              </div>
+            </div>
+            <p class="text-sm text-inksoft">
+              Más: transferencia de imágenes 1.73 MB → 0.4 MB · caché HTML 0% → 95%+ · scripts blocking 51 → 15 · tamaño HTML 225 KB → 120 KB.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 11 · FASE 2 — VISIÓN GENERAL                     -->
+        <!-- ============================================================ -->
+        <section data-section="fase 2">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 2 · semanas 2–4</span>
+            <h2 class="font-display text-5xl font-normal leading-tight">
+              Siete PRs más. <em>1 ingeniero, 2 semanas.</em>
+            </h2>
+            <div class="grid w-full grid-cols-2 gap-3 pt-2 text-left font-mono text-sm">
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">09</span>
+                <span>Filtro de tema para srcset/sizes en cada img</span>
+                <span class="pill pill-local ml-auto">1 día</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">10</span>
+                <span>Variantes AVIF + WebP para todas las imágenes grandes</span>
+                <span class="pill pill-build ml-auto">1 día</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">11</span>
+                <span>Plugin de bundling JS (Autoptimize)</span>
+                <span class="pill pill-local ml-auto">2 días</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">12</span>
+                <span>Concatenar / quitar los stylesheets restantes</span>
+                <span class="pill pill-local ml-auto">1 día</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">13</span>
+                <span>Subir un favicon real</span>
+                <span class="pill pill-local ml-auto">5 min</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">14</span>
+                <span>Desactivar el plugin de popup roto</span>
+                <span class="pill pill-local ml-auto">2 min</span>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-3 flex items-center gap-2">
+                <span class="font-bold text-cobalt">15</span>
+                <span>Cloudflare Polish + Brotli</span>
+                <span class="pill pill-local ml-auto">5 min</span>
+              </div>
+            </div>
+            <p class="text-sm text-inksoft">
+              <b class="text-ok">Resultado Fase 2:</b> las 8 páginas auditadas alcanzan perf &gt; 50. Peticiones de scripts 60 → 1. Tamaño HTML 120 KB → 80-100 KB.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 12 · FASE 3 — MANTENER LA LÍNEA                 -->
+        <!-- ============================================================ -->
+        <section data-section="fase 3">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">fase 3 · semanas 4+</span>
+            <h2 class="font-display text-4xl font-normal leading-tight">
+              Tres PRs de proceso. <em>Prevenir regresiones.</em>
+            </h2>
+            <div class="grid w-full grid-cols-3 gap-4 pt-2 text-left">
+              <div class="rounded border border-ink bg-paper2 p-4">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">16</div>
+                <div class="mt-1 font-display text-xl">Cloudflare Page Rule en Terraform</div>
+                <div class="mt-2 text-sm text-inksoft">Pon la config del caché en control de versiones. Detecta drift con <code>terraform plan</code>.</div>
+                <div class="mt-2 text-sm"><span class="pill pill-build">version-control</span></div>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-4">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">17</div>
+                <div class="mt-1 font-display text-xl">Presupuesto de rendimiento en CI</div>
+                <div class="mt-2 text-sm text-inksoft"><code>just audit-all</code> corre en CI. Bloquea el deploy si alguna página cae bajo perf 50.</div>
+                <div class="mt-2 text-sm"><span class="pill pill-build">CI</span></div>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-4">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">18</div>
+                <div class="mt-1 font-display text-xl">CrUX mensual + auditoría trimestral de plugins</div>
+                <div class="mt-2 text-sm text-inksoft">1 hora / mes para CrUX. 2-3 horas / trimestre para plugins. Recurrente en calendario.</div>
+                <div class="mt-2 text-sm"><span class="pill pill-process">proceso</span></div>
+              </div>
+            </div>
+            <p class="text-sm text-inksoft">
+              <b class="text-ok">Resultado Fase 3:</b> mantener perf &gt; 75 a largo plazo. Detección de regresiones en &lt; 1 día en lugar de en la próxima revisión trimestral.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 13 · REFERENCIAS CRUZADAS                       -->
+        <!-- ============================================================ -->
+        <section data-section="referencias">
+          <div class="mx-auto flex max-w-5xl flex-col items-start gap-4 text-left">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">referencias cruzadas</span>
+            <h2 class="font-display text-4xl font-normal leading-tight">
+              Los <em>datos detrás de cada afirmación</em>.
+            </h2>
+            <div class="grid w-full grid-cols-2 gap-4 pt-2 font-mono text-sm">
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">mientras implementas</div>
+                <ul class="space-y-1.5">
+                  <li><b>baseline.md</b> — mediciones crudas</li>
+                  <li><b>findings.md</b> — 22 hallazgos (F-01 a F-22)</li>
+                  <li><b>/tmp/mitur-build-capture.json</b> — datos de bundles</li>
+                  <li><b>/tmp/mitur-coverage-frame-capture.json</b> — coverage + frame chart</li>
+                  <li><b>/tmp/mitur-rendering-strategy.json</b> — estrategia por página</li>
+                  <li><b>lighthouse/*.json</b> — output crudo de Lighthouse</li>
+                </ul>
+              </div>
+              <div>
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt mb-1">para contexto</div>
+                <ul class="space-y-1.5">
+                  <li><b>prioritization.md</b> — puntaje PIE en los 19 hallazgos</li>
+                  <li><b>presentation.md</b> — encuadre para stakeholders</li>
+                  <li><b>presentation-es.md</b> — deck de stakeholders en español</li>
+                  <li><b>justfile</b> — automatización</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- DIAPOSITIVA 14 · REGLA DE ORO                                -->
+        <!-- ============================================================ -->
+        <section data-section="regla de oro">
+          <div class="mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">regla de oro</span>
+            <h1 class="max-w-3xl font-display text-5xl font-normal leading-tight">
+              Si no puedes <em>reproducir un número</em> en esta guía, <em>el fix tampoco se reproducirá</em>.
+            </h1>
+            <p class="max-w-2xl font-body text-lg text-inksoft">
+              Ejecuta la receta antes de publicar. Ejecútala después. Si la métrica se movió, publica. Si no, investiga — no mergees.
+            </p>
+            <p class="font-mono text-sm uppercase tracking-widest text-cobalt pt-4">
+              github.com/esauflores/mitur-audit
+            </p>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        transition: "fade",
+        controls: true,
+        progress: true,
+        center: true,
+        margin: 0.08,
+        width: 1280,
+        height: 720,
+        plugins: [RevealNotes],
+      });
+
+      const total = Reveal.getTotalSlides();
+      function updateBars() {
+        const i = Reveal.getIndices().h + 1;
+        document.getElementById("pageno").textContent =
+          String(i).padStart(2, "0") + " / " + String(total).padStart(2, "0");
+        const label = Reveal.getCurrentSlide().getAttribute("data-section");
+        if (label) document.getElementById("sectionlabel").textContent = label;
+      }
+      Reveal.on("ready", updateBars);
+      Reveal.on("slidechanged", updateBars);
+    </script>
+  </body>
+</html>

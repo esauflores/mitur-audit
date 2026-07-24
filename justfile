@@ -191,3 +191,73 @@ present-es:
       });'
     pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
     @ls preview-es/
+
+# Render implementation.html slides → preview-impl/ as PNGs.
+# Mirrors the present recipe. Uses port 9558 to avoid collisions.
+[doc("Render implementation.html slides → preview-impl/ (English)")]
+present-impl:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    port=9558
+    pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
+    sleep 0.5
+    rm -rf preview-impl && mkdir -p preview-impl
+    /usr/lib/chromium/chromium \
+        --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+        --user-data-dir=/tmp/chromium-mitur \
+        --remote-debugging-port=$port \
+        --window-size=1280,720 about:blank >/dev/null 2>&1 &
+    sleep 2
+    node -e '
+      import("puppeteer-core").then(async ({default: puppeteer}) => {
+        const browser = await puppeteer.connect({browserURL:"http://127.0.0.1:'"$port"'"});
+        const pages = await browser.pages();
+        const page = pages[0];
+        await page.setViewport({width:1280,height:720});
+        await page.goto("file://'"$(pwd)"'/implementation.html",{waitUntil:"networkidle2",timeout:30000});
+        await new Promise(r=>setTimeout(r,2500));
+        const total = await page.evaluate(() => Reveal.getTotalSlides());
+        for (let i=0;i<total;i++) {
+          await page.evaluate(n => Reveal.slide(n), i);
+          await new Promise(r=>setTimeout(r,1500));
+          await page.screenshot({path:"preview-impl/slide-"+String(i+1).padStart(2,"0")+".png"});
+        }
+        await browser.disconnect();
+      });'
+    pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
+    @ls preview-impl/
+
+# Render implementation-es.html slides → preview-impl-es/ as PNGs.
+# Mirrors the present-es recipe. Uses port 9559.
+[doc("Render implementation-es.html slides → preview-impl-es/ (Spanish)")]
+present-impl-es:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    port=9559
+    pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
+    sleep 0.5
+    rm -rf preview-impl-es && mkdir -p preview-impl-es
+    /usr/lib/chromium/chromium \
+        --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+        --user-data-dir=/tmp/chromium-mitur \
+        --remote-debugging-port=$port \
+        --window-size=1280,720 about:blank >/dev/null 2>&1 &
+    sleep 2
+    node -e '
+      import("puppeteer-core").then(async ({default: puppeteer}) => {
+        const browser = await puppeteer.connect({browserURL:"http://127.0.0.1:'"$port"'"});
+        const pages = await browser.pages();
+        const page = pages[0];
+        await page.setViewport({width:1280,height:720});
+        await page.goto("file://'"$(pwd)"'/implementation-es.html",{waitUntil:"networkidle2",timeout:30000});
+        await new Promise(r=>setTimeout(r,2500));
+        const total = await page.evaluate(() => Reveal.getTotalSlides());
+        for (let i=0;i<total;i++) {
+          await page.evaluate(n => Reveal.slide(n), i);
+          await new Promise(r=>setTimeout(r,1500));
+          await page.screenshot({path:"preview-impl-es/slide-"+String(i+1).padStart(2,"0")+".png"});
+        }
+        await browser.disconnect();
+      });'
+    pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
+    @ls preview-impl-es/

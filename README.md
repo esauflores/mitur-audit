@@ -3,7 +3,7 @@
 **Course:** FE413 — Web Performance
 **Project type:** Personal Project (independent site audit)
 **Audit target:** [Ministerio de Turismo de El Salvador](https://www.mitur.gob.sv/) (MITUR)
-**Status:** HW10 (stakeholders) complete — `presentation.html` + `presentation.md` (English, 9 slides) and `presentation-es.html` + `presentation-es.md` (Spanish, 9 slides, separate files). Both decks target ministry leadership: bottom line up front (yes, and most wins ship in week 1), 4 ways the slow page costs the ministry, the 2 root causes, what is already working, 8 Phase-1 fixes ranked by PIE, the 3-phase plan, cost of inaction, and the 3 commitments needed from leadership. Same template as the apnews-audit stakeholder report. New `just present` and `just present-es` recipes render slides → `preview/` and `preview-es/` for sharing.
+**Status:** HW11 (implementer) complete — `implementation.md` (English, ~1,000 lines, full engineering reference for 18 PRs) and `implementation.html` (15-slide Reveal.js deck). Spanish versions: `implementation-es.md` and `implementation-es.html`. Each PR follows the same template: scope, mechanism, reproduction, the fix (with exact code), verify it worked (with expected metrics), risks/edge cases, structural vs local. Coverage statement at the top explicitly lists what was audited, what was skipped (desktop, CrUX, INP, WPT, full a11y, SEO), and what was considered but not applicable (service worker, HTTP/3, PWA, AMP, origin Brotli, RUM). The implementation guide is the engineering reference; the deck is the at-a-glance summary. `just present-impl` and `just present-impl-es` render the decks.
 
 ---
 
@@ -110,9 +110,12 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 - `baseline.md` — CWV + PSI for the homepage (HW2 deliverable) + Network Activity (HW3) + Build outputs (HW7: JS / CSS bundling, image formats, 3P loading, source maps) + Coverage + Performance frame chart + Layers & animations (HW8) + Rendering strategies for all 8 audited pages (HW9)
 - `findings.md` — 22 findings from the homepage baseline (19 corrective + 3 good): F-01..F-05 from HW2 CWV+PSI, F-06..F-10 from HW3 networking, F-11 added in HW4 cleanup, F-12 + F-13 added in HW5 mobile pass, F-14..F-17 added in HW7 build-analysis, F-18..F-20 added in HW8 frame-analysis, F-21..F-22 added in HW9 rendering-strategies. F-07 wording corrected in HW9 (was "uncompressed" — actually gzipped; re-scored to 144).
 - `prioritization.md` — PIE-scored ranking of the 19 corrective findings, phase plan (Phase 1: top cluster, PIE ≥ 384 — 8 findings; Phase 2: mid + bottom, PIE 48–336). Includes comparison to AP News course-project triangulation.
-- `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just build-capture` · `just coverage-frames` · `just rendering-strategy` · `just present` · `just present-es` · `just clean`
-- `presentation.html` + `presentation.md` — Reveal.js slide deck + MD mirror for stakeholders (English, 9 slides, same template as the apnews-audit presentation).
-- `presentation-es.html` + `presentation-es.md` — Spanish translation of the same deck (separate files, for the El Salvadoran ministry audience).
+- `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just build-capture` · `just coverage-frames` · `just rendering-strategy` · `just present` · `just present-es` · `just present-impl` · `just present-impl-es` · `just clean`
+- `presentation.html` + `presentation.md` — Reveal.js stakeholder deck + MD mirror (English, 9 slides, same template as the apnews-audit presentation).
+- `presentation-es.html` + `presentation-es.md` — Spanish translation of the stakeholder deck (separate files, for the El Salvadoran ministry audience).
+- `implementation.md` — full engineering reference (English, ~1,000 lines, 18 PRs across 3 phases, with exact PHP/JS/HTML/Cloudflare config, file paths, verification commands, and edge-case notes). The companion to `findings.md`: a finding becomes a PR.
+- `implementation.html` — 15-slide implementation deck (English), the at-a-glance summary of `implementation.md`.
+- `implementation-es.md` + `implementation-es.html` — Spanish translation of both implementation files.
 - `scripts/targets.tsv` — the 8 audited pages (name, url per line; uses actual tab characters — fixed in HW9; the `just audit-all` recipe now works correctly)
 - `scripts/cold-vs-warm.mjs` — measure cold-vs-warm transfer for the homepage (Cloudflare cache effectiveness)
 - `scripts/build-capture.mjs` — inspect homepage build outputs (JS/CSS bundles, image formats, 3P loading strategy, source-map exposure, unused JS/CSS via puppeteer's coverage API). Output: `/tmp/mitur-build-capture.json`.
