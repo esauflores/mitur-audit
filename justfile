@@ -97,3 +97,11 @@ clean:
 cold-vs-warm:
     @node scripts/cold-vs-warm.mjs
     @node -e 'const r=require("/tmp/mitur-cold-vs-warm.json"); console.log("Cold:", r.cold.requests, "req /", r.cold.transferKB, "KB"); console.log("Warm:", r.warm.requests, "req /", r.warm.transferKB, "KB"); console.log("Cache hit rate (cold):", r.cold.byCfCache); console.log("Cache hit rate (warm):", r.warm.byCfCache);'
+
+# Inspect homepage build outputs: JS / CSS bundles, image formats,
+# 3rd-party loading strategy, source-map exposure, and unused-JS / unused-CSS
+# via puppeteer's coverage API. Writes /tmp/mitur-build-capture.json.
+# MITUR has no consent popup, so no pre-click is needed.
+[doc("Inspect homepage build outputs (bundles, images, 3P loading strategy)")]
+build-capture:
+    @node scripts/build-capture.mjs

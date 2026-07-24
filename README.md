@@ -3,7 +3,7 @@
 **Course:** FE413 — Web Performance
 **Project type:** Personal Project (independent site audit)
 **Audit target:** [Ministerio de Turismo de El Salvador](https://www.mitur.gob.sv/) (MITUR)
-**Status:** HW6 complete — Prioritization system selected and applied: **PIE** (Potential × Importance × Ease, 1-10 each, score = P × I × E, range 1-1000). Different from the course project's RICE/ICE/WSJF and from the instructor's RICE. All 10 corrective findings re-scored with PIE; good findings (F-10, F-11, F-13) are not prioritized (already working). Top quartile (PIE ≥ 270) clusters in Phase 1: F-12, F-01, F-02, F-03, F-07, F-06.
+**Status:** HW7 complete — Build outputs (JS / CSS bundling, image formats, 3P loading) added to `baseline.md` via `node scripts/build-capture.mjs` (puppeteer + Performance API + v8 coverage API). 4 corrective findings added (F-14: 51 sync scripts, F-15: 37 stylesheets w/ 99.6% unused block-editor CSS, F-16: 0/35 images have srcset/sizes/fetchpriority/dimensions, F-17: AVIF not served). findings.md now has 17 findings: **14 corrective** (F-01..F-09, F-12, F-14..F-17) + **3 good** (F-10, F-11, F-13). PIE prioritization from HW6 still applies; Phase 1 grew from 6 to 7 findings because F-14 (P×I×E = 9×9×5 = 405) and F-15 (8×7×7 = 392) join the top cluster (PIE ≥ 384).
 
 ---
 
@@ -54,7 +54,7 @@ _Note: CLS values vary significantly between runs (±50% or more) because the si
 
 _Statistics page excluded from "data-heavy" classification — it's a single manually-updated image (`estadisticas-abril.jpeg`), not live data. Captured separately for completeness; replaced in the 8-page audit by the photo contest (`/contest/`) which actually has dynamic interactive content._
 
-**CrUX field data (origin level, last 28 days):** not captured in this run — will be added in a later HW.
+**CrUX field data (origin level, last 28 days):** not captured — lab data only. Would refine the 75th-percentile picture but is unlikely to change the qualitative finding (lab is poor; the architecture is bounded by the same scripts).
 **Methodology, per-page Lighthouse JSON, and full per-audit breakdown** — see `lighthouse/*.json`.
 
 ## Target pages
@@ -107,12 +107,13 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 ## What's in this repo
 
 - `README.md` — this file (HW1 deliverable)
-- `baseline.md` — CWV + PSI for the homepage (HW2 deliverable)
-- `findings.md` — 13 findings from the homepage baseline (10 corrective + 3 good): F-01..F-05 from HW2 CWV+PSI, F-06..F-10 from HW3 networking, F-11 added in HW4 cleanup, F-12 + F-13 added in HW5 mobile pass
-- `prioritization.md` — PIE-scored ranking of all 10 corrective findings, phase plan (Phase 1: top quartile; Phase 2: mid quartile). Includes comparison to AP News course-project triangulation.
-- `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just clean`
+- `baseline.md` — CWV + PSI for the homepage (HW2 deliverable) + Network Activity (HW3) + Build outputs (HW7: JS / CSS bundling, image formats, 3P loading, source maps)
+- `findings.md` — 17 findings from the homepage baseline (14 corrective + 3 good): F-01..F-05 from HW2 CWV+PSI, F-06..F-10 from HW3 networking, F-11 added in HW4 cleanup, F-12 + F-13 added in HW5 mobile pass, F-14..F-17 added in HW7 build-analysis
+- `prioritization.md` — PIE-scored ranking of the 14 corrective findings, phase plan (Phase 1: top cluster, PIE ≥ 384; Phase 2: mid cluster, PIE 112–336). Includes comparison to AP News course-project triangulation.
+- `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just build-capture` · `just clean`
 - `scripts/targets.tsv` — the 8 audited pages (name, url per line)
 - `scripts/cold-vs-warm.mjs` — measure cold-vs-warm transfer for the homepage (Cloudflare cache effectiveness)
+- `scripts/build-capture.mjs` — inspect homepage build outputs (JS/CSS bundles, image formats, 3P loading strategy, source-map exposure, unused JS/CSS via puppeteer's coverage API). Output: `/tmp/mitur-build-capture.json`.
 - `lighthouse/*.json` — raw Lighthouse reports for the 8 audited pages
 
 ## Methodology references
@@ -121,7 +122,7 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 - CrUX field data: per Day 14 auditor's seat (not captured this run)
 - Rendering strategy fingerprint: per Day 12 §5
 - Building pipeline / bundle: per Day 7
-- Prioritization (RICE): per Day 5
+- Prioritization (PIE): per Day 5
 
 ---
 

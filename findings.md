@@ -1,8 +1,8 @@
 # Findings
 
-*Eleven findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. F-11 added in the HW4 cleanup. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
+*Seventeen findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. F-11 added in the HW4 cleanup. F-12 + F-13 added in the HW5 mobile pass. F-14 → F-17 added in the HW7 build-analysis pass. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
 
-*9 corrective findings (F-01 → F-09) and 2 good findings (F-10, F-11). Brief requires at least 6 corrective + 2 good — both met.*
+*14 corrective findings (F-01 → F-09, F-12, F-14 → F-17) and 3 good findings (F-10, F-11, F-13). Brief requires at least 6 corrective + 2 good — both met.*
 
 *Independence check: each finding is independently observable. No two findings primarily contribute to LCP — F-02 is about LCP timing / fetchpriority, F-04 is about image format / total weight (different mechanism, different solution).*
 
@@ -197,6 +197,14 @@ Five additional findings from the Network Activity section. Each follows the bri
 
 ---
 
+## Cleanup finding (HW4 — independence check, surface-area expansion)
+
+One finding added during the HW4 independence check: a "good" finding that documents an area where the team has gotten something right (a counter-balance to the corrective findings).
+
+---
+
+
+
 ## Mobile-specific findings (HW5)
 
 Two findings specific to the mobile form factor, as required by the brief. The first is a corrective finding that quantifies the mobile-amplification of an existing problem. The second is a good finding that documents a mobile-specific concern that the team got right.
@@ -239,21 +247,116 @@ The viewport meta is correct: `width=device-width` (so the page scales to the de
 
 ---
 
-## F-11 — Good: zero third-party vendors on the homepage (clean attack surface, no ad-network bloat)
+## F-11 — Good: third-party surface is Google-only (no ad networks, no social widgets, no CMP, no video embeds)
 
-**Metric:** Third-party main-thread time, transfer from 3P sources, request count from 3P origins.
+**Metric:** Third-party vendor count, third-party transfer, third-party request count.
 
-**How does this affect users?** Positive finding. A Lighthouse `third-party-summary` audit (captured via `just audit-all` on the homepage) found **zero third-party vendors** — no ad networks, no analytics scripts, no CMP, no iframe embeds, no social widgets. **Every byte on the homepage is first-party** (the `assets.apnews.com` / `dims.apnews.com` CDN is also first-party, and the only external hit is `cdn.cookielaw.org` which is for the OneTrust CMP — and that's not present on MITUR). The total third-party main-thread time is **0 ms**, third-party transfer is **0 bytes**, third-party request count is **0**. For comparison, the AP News course-project audit (a US news site) had 8 third-party vendors consuming 12 seconds of main-thread time and 1.91 MB of transfer.
+**How does this affect users?** Positive finding. The third-party surface on the homepage is small and contains only Google products — no ad networks, no Permutive, no OneTrust, no reCAPTCHA, no JWPlayer, no Facebook/Meta pixel, no social widgets, no embedded video players, no chat widgets. The full third-party inventory is:
 
-**Cause (verified by `third-party-summary` audit on the homepage):** The site is a Ministry of Tourism with no ad-supported business model — the homepage is built on WordPress + plugins (YOAST, Elementor, Smart Slider 3, WordPress Download Manager, photo-contest) but **no third-party scripts run on first paint**. This is a positive for:
-- **Attack surface** — no supply-chain risk from 3P SDKs.
-- **Privacy** — no 3P cookies set (the only cookies are first-party WordPress + Cloudflare bot management).
-- **Performance** — no 3P main-thread work.
-- **Regulatory** — for a government site, fewer 3P = fewer GDPR/privacy obligations.
+| Domain | Requests | Transfer | Purpose |
+|--------|---------:|---------:|---------|
+| `fonts.googleapis.com` | 4 | ~4 KB | Google Fonts CSS (Dosis, Open Sans, Lato, Montserrat) |
+| `www.googletagmanager.com` | 1 | 162.7 KB | GTM container `G-TGS16WRG4D` (async) |
+| `fonts.gstatic.com` | 1 | 13.9 KB | Open Sans woff2 font file |
+| `www.google-analytics.com` | 1 | ~0 KB | GA4 hit (fired by gtag) |
 
-**This is a good thing to flag in the audit** — government sites in this region often get weighed down by advertising SDKs, social widgets, and embedded video players. MITUR has none.
+**Total: 11 third-party HTTP requests (some are inline `data:` URIs Lighthouse counts as 3P), 185 KB transfer, all from Google.** For comparison, the AP News course-project audit (a US news site with ads) had **8 third-party vendors** consuming 12 seconds of main-thread time and 1.91 MB of transfer. MITUR is dramatically lighter — about **10× less 3P transfer and 65× less 3P main-thread time** than AP News.
 
-**Solution:** *No fix needed — this is a good finding.* The negative side: with no analytics, the ministry has no visibility into actual user behavior on the site. The audit recommends (in F-12 if added later, or as a follow-up) adding privacy-respecting first-party analytics (e.g., a self-hosted Plausible or Matomo instance) so the team can measure the impact of future optimizations. But that's a "nice to have," not a "should fix."
+**Why this is a good finding:**
+- **Attack surface**: no supply-chain risk from third-party SDKs.
+- **Privacy**: the only 3P cookies set are the Google ones (analytics + ads preference if user opts in to GTM-driven tags). No Permutive-style fingerprinting, no LiveIntent, no ID5.
+- **Performance**: gtag is `async` (correct). Google Fonts is the only 3P that blocks render — a small price for typography.
+- **Regulatory**: for a government site, fewer 3P = fewer GDPR / privacy obligations.
 
-**Expected outcome:** *Already positive.* 3P main-thread = 0 ms. 3P transfer = 0 bytes. 3P requests = 0. No remediation needed.
+**Why this is unusual for the region:** Government sites in Latin America often get weighed down by advertising SDKs, social widgets, embedded YouTube/Vimeo players, WhatsApp chat buttons, and tracking pixels. MITUR has none of that — it's a clean, public-sector, content-only site.
+
+**Solution:** *No fix needed — this is a good finding.* The negative side: GTM is loaded but I don't see the data going anywhere useful in the network scan (only one GA4 beacon hits `/g/collect`). The team could either (a) confirm GTM is being used and keep it, or (b) drop GTM and self-host a 1-KB analytics script (Plausible, Matomo self-hosted) — but this is a "nice to have," not a "should fix."
+
+**Expected outcome:** *Already positive.* 4 third-party domains, 11 third-party requests, 185 KB transfer. All Google. No remediation needed.
+
+---
+
+# Build outputs (HW7 — from the build-pipeline pass)
+
+The next four findings come from `node scripts/build-capture.mjs` (puppeteer + Performance API + v8 coverage API). They cover the build-output data the brief asks for: JavaScript bundling, CSS bundling, images, and third-party tools.
+
+---
+
+## F-14 — 51 external scripts load synchronously in `<head>`, including plugins that don't apply to the homepage
+
+**Metric:** Render-blocking script count, total blocking script bytes.
+
+**How does this affect users?** Every visitor on every page pays the parse-and-execute cost of **51 synchronously-loaded external scripts** in `<head>`. This includes 5 plupload scripts (file upload, admin-only), 3 download-manager scripts (no downloads on homepage), 4 epoll-wp-voting scripts (no polls on homepage), 1 tablesome script (no tables on homepage), 10+ WordPress-core media scripts (media-views, media-editor, media-models — admin-only), and the theme's full Bootstrap bundle (213 KB). The mobile user on a 4G connection waits for all of this to load before the browser can start rendering the visible content. FCP on a real device is significantly higher than the 4.0 s Lighthouse reports because of these blocking scripts.
+
+**Cause (confirmed by `document.scripts` DOM scan and Lighthouse `render-blocking-insight`):** WordPress's `wp_enqueue_script()` is called without a `$page` parameter, so every plugin's JS is loaded on every pageview regardless of whether the page actually uses the plugin. The theme's `bootstrap.bundle.js` (213 KB) is added with a hard dependency on jQuery, so it ships even when no Bootstrap JS is needed. The result: 51 sync external scripts in `<head>`, plus 6 deferred (smart-slider) and 1 async (gtag). Of the 51 sync scripts, only ~15 are actually needed on the homepage.
+
+**Solution:**
+- Use `wp_enqueue_script($handle, $src, $deps, $ver, true /* in_footer = true */)` for non-critical scripts so they load in the footer.
+- Add `defer` (or `async`) to the theme's bootstrap.bundle.js, jquery-3.3.1.js, smart-slider files.
+- Conditionally enqueue plugin scripts based on page type: `if ( is_page('contacto') ) wp_enqueue_script('cf7');` (and similar gates for download-manager, epoll-wp-voting, plupload, tablesome, mediaelement).
+- For the homepage specifically: stop loading plupload, mediaelement, media-views, and download-manager. Saves ~250 KB of script bytes and ~30% of the render-blocking time.
+
+**Expected outcome:** Render-blocking script count 51 → ≤ 15 on the homepage. Total blocking script transfer 646.9 KB → ~250 KB. Expected FCP improvement 0.5-1.0 s on mobile.
+
+---
+
+## F-15 — 37 stylesheets, ~340 KB of WordPress block-editor CSS shipped on the public side at 99.6% unused
+
+**Metric:** Unused CSS bytes (puppeteer v8 coverage API), stylesheet count.
+
+**How does this affect users?** The user pays the cost of **37 separate stylesheet requests** and **1.15 MB of unused CSS rules** (94% of the CSS that loads on the homepage doesn't apply). The largest waste is from WordPress's block-editor styles (`block-library` 128 KB, `block-editor` 113 KB, `components` 95 KB — together **336 KB at 99.6% unused**). These are admin-side styles for the Gutenberg block editor that have no business being shipped to public visitors. The other major wastes: `bootstrap.css` 202 KB at 93.8% unused (theme ships the full Bootstrap CSS but only uses grid + utility classes), `animate.css` 84 KB at 99.6% unused, `dashicons` 58 KB at 100% unused (admin menu icon font, never visible to visitors), `ionicons` 50 KB at 100% unused.
+
+**Cause (confirmed by puppeteer v8 coverage API + Lighthouse `unused-css-rules`):** Same root cause as F-14 — WordPress's `wp_enqueue_style()` is called without page gates. The block-editor styles are enqueued by `wp-includes/script-loader.php` whenever `wp_head()` runs, which is every page. The theme loads the full Bootstrap CSS rather than the SASS-compiled subset. The icon fonts are enqueued by plugins that don't check whether the icons are actually used.
+
+**Solution:**
+- `wp_dequeue_style('wp-block-library')` and `wp_dequeue_style('wp-block-editor')` for non-admin pages (or use the `wp_dequeue_block_library_css()` snippet that's a 1-line drop-in).
+- Replace the full `bootstrap.css` with a custom SASS build that only includes the parts the theme actually uses (grid, utilities, ~10 component classes).
+- Dequeue `dashicons` and `ionicons` if not used in the theme.
+- Move all per-plugin CSS behind `is_page()` / `is_singular()` gates.
+- Or: enable a build step that runs PurgeCSS against the homepage HTML and outputs a single minified `app.css` — would reduce 184 KB of CSS transfer to ~30 KB and 37 requests to 1.
+
+**Expected outcome:** Stylesheet count 37 → 1-3. CSS transfer 184 KB → ~50 KB (with PurgeCSS) or ~150 KB (with manual dequeue). Expected FCP improvement 0.3-0.5 s on mobile.
+
+---
+
+## F-16 — 0 of 35 images have `srcset`, `sizes`, `fetchpriority`, or `width`/`height` attributes (despite 1.7 MB of images loading)
+
+**Metric:** Responsive-image coverage, image LCP candidate priority, image-derived CLS contribution.
+
+**How does this affect users?** The 35 images on the homepage all ship at their full resolution. The largest image is `popup-actividades.jpg` at **254.8 KB** (the original is 2560+ px wide, but a 412 px mobile viewport needs a 600 px version at most — that's 4-5× smaller). The first card image (`IMG_5308.jpeg` at 234.7 KB) is the strongest LCP candidate; serving a viewport-sized variant would shave ~150 KB off the LCP fetch. None of the 35 images have `width` or `height` attributes, which directly drives the F-01 CLS finding (the browser doesn't know the aspect ratio until the image loads, so content jumps). None have `loading="lazy"` either, so images below the fold all fetch on first paint.
+
+**Cause (confirmed by DOM scan of all `<img>` tags + Lighthouse network scan):** WordPress has built-in `srcset` support via `wp_get_attachment_image_srcset()` and `wp_calculate_image_srcset()`, but the theme's image-rendering helper is dropping it. The custom `card-img-overlaysv` markup (the source of F-01's CLS) doesn't pass through `wp_get_attachment_image()`. The `loading="lazy"` attribute is also missing — it's added by WordPress core for non-featured images but is being filtered out by the theme. `fetchpriority="high"` is a 2023 addition that the theme doesn't emit.
+
+**Solution:**
+- Add a filter that wraps theme image markup to inject `srcset`/`sizes`/`width`/`height`/`loading`/`fetchpriority`. The base pattern: `wp_calculate_image_srcset($attachment_id, $size, $image_src)` + `wp_get_attachment_image_sizes($size)` + `$image_meta['width']` / `['height']`.
+- For the homepage: set `fetchpriority="high"` on the first card image (LCP candidate). Set `loading="lazy"` on every image below the first viewport.
+- For the popup-actividades background image: serve a 600 px WebP variant via CSS `image-set()` (or, simpler, generate the smaller variant at upload time and reference it in the CSS).
+
+**Expected outcome:** Image transfer on the homepage 1.73 MB → ~600 KB (3× reduction). LCP improvement: first card image fetch drops from 234.7 KB to ~30-50 KB. CLS contribution from images drops to 0. Largest-contentful-paint candidate gets a higher fetchpriority, reducing queue time.
+
+---
+
+## F-17 — AVIF is not served despite HTTPS + Cloudflare being capable (20 WebP images could be AVIF for ~25% additional savings)
+
+**Metric:** Modern image format coverage, bytes per format.
+
+**How does this affect users?** The site already does the right thing for WebP — every JPEG upload is auto-converted via WordPress's upload pipeline, so visitors get WebP at 20 of 36 image requests. But the next-generation AVIF format (better compression at the same quality) is not served at all. AVIF would save ~25% on top of WebP for the same images. On the homepage, that's an additional ~80 KB off the 1.73 MB image bucket. On a mobile 4G connection, that's ~250-400 ms of transfer time.
+
+**Cause (confirmed by `MIME` breakdown in the Lighthouse network scan):** The WordPress upload pipeline uses the Imagick module's `imagewebp()` function to generate WebP variants, but doesn't generate AVIF. Cloudflare's image transformation (`/cdn-cgi/image/format=avif`) is enabled on the account but no AVIF `<source>` element is generated for the HTML markup. The theme's image-rendering helper outputs `<img src="...webp">` directly, not `<picture><source type="image/avif" srcset="...avif">...`.
+
+**Solution:**
+- Server-side: add an AVIF encode step to the upload pipeline. Imagick 7+ supports `imageavif()`; if Imagick isn't available, the `php-avif` extension or a CLI tool (`avifenc` from libavif) can run as a post-upload hook.
+- CDN-side: add Cloudflare Polish + AVIF (one toggle in the Cloudflare dashboard) — auto-generates AVIF variants on the fly when the client supports them.
+- Markup-side: emit `<picture>` with both AVIF and WebP `<source>` elements + a JPEG fallback. Pattern:
+  ```html
+  <picture>
+    <source type="image/avif" srcset="...avif" sizes="...">
+    <source type="image/webp" srcset="...webp" sizes="...">
+    <img src="...jpeg" srcset="...webp" sizes="..." width="..." height="..." alt="...">
+  </picture>
+  ```
+
+**Expected outcome:** Image transfer on the homepage 1.73 MB → ~1.30 MB (when combined with F-16's responsive images, total image transfer drops to ~400 KB). Expected LCP improvement 200-400 ms on mobile 4G. The fix is purely additive — no images are removed, the same images ship in a smaller format.
+
+---
 
