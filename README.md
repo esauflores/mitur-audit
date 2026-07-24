@@ -109,6 +109,8 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 - `README.md` — this file (HW1 deliverable)
 - `baseline.md` — CWV + PSI for the homepage (HW2 deliverable)
 - `findings.md` — 5 findings from the homepage baseline (HW2 deliverable)
+- `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just clean`
+- `scripts/targets.tsv` — the 8 audited pages (name, url per line)
 - `lighthouse/*.json` — raw Lighthouse reports for the 8 audited pages
 
 ## Methodology references

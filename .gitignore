@@ -2,7 +2,10 @@
 # Captures site data for analysis
 
 # Generated Lighthouse reports (committed for the audit trail)
-lighthouse/
+# lighthouse/
+
+# Lighthouse logs (regenerable; not committed)
+lighthouse/logs/
 
 # Run artifacts — local-only, regenerable
 /tmp/lh-mitur-*.json
