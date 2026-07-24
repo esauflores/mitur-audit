@@ -3,7 +3,7 @@
 **Course:** FE413 — Web Performance
 **Project type:** Personal Project (independent site audit)
 **Audit target:** [Ministerio de Turismo de El Salvador](https://www.mitur.gob.sv/) (MITUR)
-**Status:** HW7 complete — Build outputs (JS / CSS bundling, image formats, 3P loading) added to `baseline.md` via `node scripts/build-capture.mjs` (puppeteer + Performance API + v8 coverage API). 4 corrective findings added (F-14: 51 sync scripts, F-15: 37 stylesheets w/ 99.6% unused block-editor CSS, F-16: 0/35 images have srcset/sizes/fetchpriority/dimensions, F-17: AVIF not served). findings.md now has 17 findings: **14 corrective** (F-01..F-09, F-12, F-14..F-17) + **3 good** (F-10, F-11, F-13). PIE prioritization from HW6 still applies; Phase 1 grew from 6 to 7 findings because F-14 (P×I×E = 9×9×5 = 405) and F-15 (8×7×7 = 392) join the top cluster (PIE ≥ 384).
+**Status:** HW8 complete — Coverage + frame chart + layers/animations added to `baseline.md` via `node scripts/coverage-frame-capture.mjs` (puppeteer + v8 coverage API + rAF deltas + DOM walk). 3 corrective findings added: F-18 (no critical-CSS pipeline: 16 inline `<style>` blocks aren't above-the-fold rules), F-19 (2 dropped frames in 5s during load — user-perceptible tail of F-12 + F-14), F-20 (6 of 7 `will-change` are block-editor admin CSS bleeding to public; 2 `translate3d(0,0,0)` from Smart Slider 3). findings.md now has 20 findings: **17 corrective** (F-01..F-09, F-12, F-14..F-20) + **3 good** (F-10, F-11, F-13). PIE prioritization: top cluster (PIE ≥ 384) grew from 7 to 8 findings; F-18 (P×I×E = 8×9×6 = 432) enters at #4. **Frame chart headline: 60.3 fps during scroll, 60.4 fps during click** — paint cost is healthy. The 2 dropped frames in the load-phase 5s window are the residual of F-12 (TBT) and F-14 (51 sync scripts), not a paint/composite problem.
 
 ---
 
@@ -107,13 +107,14 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 ## What's in this repo
 
 - `README.md` — this file (HW1 deliverable)
-- `baseline.md` — CWV + PSI for the homepage (HW2 deliverable) + Network Activity (HW3) + Build outputs (HW7: JS / CSS bundling, image formats, 3P loading, source maps)
-- `findings.md` — 17 findings from the homepage baseline (14 corrective + 3 good): F-01..F-05 from HW2 CWV+PSI, F-06..F-10 from HW3 networking, F-11 added in HW4 cleanup, F-12 + F-13 added in HW5 mobile pass, F-14..F-17 added in HW7 build-analysis
-- `prioritization.md` — PIE-scored ranking of the 14 corrective findings, phase plan (Phase 1: top cluster, PIE ≥ 384; Phase 2: mid cluster, PIE 112–336). Includes comparison to AP News course-project triangulation.
-- `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just build-capture` · `just clean`
+- `baseline.md` — CWV + PSI for the homepage (HW2 deliverable) + Network Activity (HW3) + Build outputs (HW7: JS / CSS bundling, image formats, 3P loading, source maps) + Coverage + Performance frame chart + Layers & animations (HW8)
+- `findings.md` — 20 findings from the homepage baseline (17 corrective + 3 good): F-01..F-05 from HW2 CWV+PSI, F-06..F-10 from HW3 networking, F-11 added in HW4 cleanup, F-12 + F-13 added in HW5 mobile pass, F-14..F-17 added in HW7 build-analysis, F-18..F-20 added in HW8 frame-analysis
+- `prioritization.md` — PIE-scored ranking of the 17 corrective findings, phase plan (Phase 1: top cluster, PIE ≥ 384 — 8 findings; Phase 2: mid + bottom, PIE 48–336). Includes comparison to AP News course-project triangulation.
+- `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just build-capture` · `just coverage-frames` · `just clean`
 - `scripts/targets.tsv` — the 8 audited pages (name, url per line)
 - `scripts/cold-vs-warm.mjs` — measure cold-vs-warm transfer for the homepage (Cloudflare cache effectiveness)
 - `scripts/build-capture.mjs` — inspect homepage build outputs (JS/CSS bundles, image formats, 3P loading strategy, source-map exposure, unused JS/CSS via puppeteer's coverage API). Output: `/tmp/mitur-build-capture.json`.
+- `scripts/coverage-frame-capture.mjs` — inspect homepage coverage (critical CSS, unused JS/CSS), frame chart (dropped frames during load / scroll / click), and layers & animations (stacking contexts, will-change, transform3d). Output: `/tmp/mitur-coverage-frame-capture.json`.
 - `lighthouse/*.json` — raw Lighthouse reports for the 8 audited pages
 
 ## Methodology references

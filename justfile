@@ -105,3 +105,11 @@ cold-vs-warm:
 [doc("Inspect homepage build outputs (bundles, images, 3P loading strategy)")]
 build-capture:
     @node scripts/build-capture.mjs
+
+# Capture coverage (critical CSS, unused JS/CSS) and frame-chart metrics
+# (dropped frames during load / scroll / click) plus layers & animations
+# (stacking contexts, will-change, transform3d) via puppeteer's coverage API
+# and requestAnimationFrame deltas. Writes /tmp/mitur-coverage-frame-capture.json.
+[doc("Coverage + frame chart + layers/animations (HW8 metrics)")]
+coverage-frames:
+    @node scripts/coverage-frame-capture.mjs

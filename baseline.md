@@ -306,6 +306,138 @@ The non-trivial part of the build-pipeline findings is **not the third-party sur
 
 ---
 
+## Coverage (homepage)
+
+*Captured 2026-07-24 via `node scripts/coverage-frame-capture.mjs` (HW8): puppeteer's v8 coverage API for unused-JS / unused-CSS, DOM walk for inline `<style>` blocks, and CSS rules introspection for critical-CSS extraction. Raw data: `/tmp/mitur-coverage-frame-capture.json`. Recipe: `just coverage-frames`.*
+
+### Critical CSS
+
+- **Inline `<style>` blocks**: **16**, totaling **59,663 bytes** (~58 KB).
+- **9 of those 16 blocks** match loose "above-the-fold" markers (e.g. `body { ... }`, `html { ... }`, `header`, `nav`, `.card-img`, `.wp-block-*`, `@media`).
+- **First-party external stylesheets**: **37 `<link rel="stylesheet">`** entries in `<head>`, all render-blocking, totaling **~184 KB transfer**. Top blockers: `bootstrap.css` (37 KB), `dashicons.min.css` (35 KB), `style.css` (theme, 14 KB), `block-library` (16 KB).
+- **Observation**: there is no audit-grade critical-CSS extraction pipeline. The 9 inline blocks that match "above-the-fold" markers do so because they include WordPress admin styles (`.wp-block-*`, `@media`) that happen to contain those tokens — they are not actually above-the-fold rules for the homepage. The 37 external stylesheets ship in full regardless of viewport. **The "critical" inline CSS is what WordPress's default enqueue pipeline dumps inline, not what an extraction tool would select.**
+
+### Unused JavaScript
+
+| Bucket | Entries | Total bytes | Unused bytes | Unused % |
+|---|---:|---:|---:|---:|
+| **Total** | **91** | **2,341.6 KB** | **1,454.6 KB** | **62.1%** |
+
+Top 10 unused-JS offenders:
+
+| Script | Unused | % | Source |
+|---|---:|---:|---|
+| `googletagmanager.com/gtag/js?id=G-TGS16WRG4D` | 239.3 KB | 50.2% | google |
+| `instituciones/js/bootstrap.bundle.js` | 130.5 KB | 59.7% | first-party |
+| `mediaelement/mediaelement-and-player.min.js` | 126.0 KB | 81.7% | first-party (plugin) |
+| `instituciones/js/jquery-3.3.1.js` | 123.0 KB | 44.6% | first-party (theme) |
+| `media-views.min.js` | 86.7 KB | 80.2% | first-party (WordPress core) |
+| `download-manager/.../jquery.dataTables.min.js` | 79.2 KB | 82.2% | first-party (plugin) |
+| `plupload/moxie.min.js` | 64.7 KB | 75.8% | first-party (WordPress core) |
+| `smart-slider-3/.../ss-core.min.js` | 61.4 KB | 54.2% | first-party (plugin) |
+| `ajax-search-lite/.../asl.min.js` | 52.2 KB | 65.7% | first-party (plugin) |
+| `megamenu/js/maxmegamenu.js` | 46.6 KB | 99.2% | first-party (plugin) |
+
+**Pattern**: the most unused JS is first-party plugin/theme code (not third-party ad scripts, as on AP News). Mediaelement (no audio/video on homepage), dataTables (no download listing), plupload (no file upload), and the older theme jQuery (alongside WP core 3.7.1) are all loaded but never executed. **Same root cause as F-14** (51 sync scripts in `<head>` regardless of page context) — the coverage data shows *how much* of those scripts never runs, not just that they block render.
+
+### Unused CSS
+
+| Bucket | Entries | Total bytes | Unused bytes | Unused % |
+|---|---:|---:|---:|---:|
+| **Total** | **50** | **1,210.7 KB** | **1,141.8 KB** | **94.3%** |
+
+Top 10 unused-CSS offenders:
+
+| Stylesheet | Unused | % | Source |
+|---|---:|---:|---|
+| `instituciones/css/bootstrap.css` | 187.4 KB | 92.8% | first-party (theme) |
+| `block-library/style.min.css` | 127.5 KB | 99.6% | first-party (WordPress core, admin) |
+| `block-editor/style.min.css` | 112.9 KB | 99.6% | first-party (WordPress core, admin) |
+| `dist/components/style.min.css` | 94.8 KB | 99.6% | first-party (WordPress core, admin) |
+| `instituciones/css/animate.css` | 83.2 KB | 99.6% | first-party (theme) |
+| `dashicons.min.css` | 57.6 KB | 100% | first-party (WordPress core, admin) |
+| `download-manager/assets/css/front.min.css` | 54.6 KB | 100% | first-party (plugin) |
+| `instituciones/css/ionicons.min.css` | 50.1 KB | 100% | first-party (theme) |
+| `media-views.min.css` | 48.3 KB | 100% | first-party (WordPress core, admin) |
+| `instituciones/style.css` (theme) | 32.4 KB | 72.5% | first-party (theme) |
+
+**Pattern**: 94.3% of all CSS bytes ship but never match. The single biggest category is **WordPress block-editor admin CSS** (`block-library` + `block-editor` + `components` = 335.2 KB at 99.6% unused) shipping on the public side because WordPress's `wp_head()` call enqueues these for admin and public alike. The theme loads the full `bootstrap.css` (202 KB) when only a fraction of the grid + utility classes is used, plus the full `animate.css` (84 KB) and `ionicons` font (50 KB) regardless of whether any animation or icon is in viewport. **Same root cause as F-15** (37 stylesheets in `<head>`, mostly unused) — this coverage data is the *quantified* version of that finding.
+
+---
+
+## Performance frame chart (homepage, post-settle)
+
+*Captured 2026-07-24 via `requestAnimationFrame` deltas in the browser, 8 s after navigation + 5 s of load capture + 3 s of scroll capture + 2 s of click capture. A "dropped frame" is defined as >25 ms between consecutive frames (the 60-fps threshold is 16.67 ms; >25 ms means the browser missed a paint). Raw data: `/tmp/mitur-coverage-frame-capture.json`.*
+
+_Note: the capture happens **8 s after navigation** to let scripts run. The "load" phase thus measures **post-load settling**, not initial load. The initial-load jank (TBT 1.2 s on mobile amplification, F-12) is captured in the TBT finding; the frame chart here is the "show your work" artifact for paint/composite cost after the main thread has settled._
+
+| Phase | Total frames | Dropped frames | Avg frame interval | Max frame interval | Effective fps |
+|---|---:|---:|---:|---:|---:|
+| **Load** (5 s, post-8s-settle) | 297 | 2 | 16.88 ms | 83.4 ms | **59.2 fps** |
+| **Scroll** to bottom (3 s) | 181 | **0** | 16.59 ms | 16.8 ms | **60.3 fps** |
+| **Click** on visible button (2 s) | 121 | 1 | 16.55 ms | 33.4 ms | **60.4 fps** |
+| Click target | `<button>` at (376, 251) — popup close button (`×`) | | | | |
+
+**Observations**:
+- **Scroll is perfect**: 0 of 181 frames dropped, max interval 16.8 ms. The page never janks during scroll.
+- **Click has 1 transient drop**: 1 of 121 frames dropped (33.4 ms), corresponding to the popup-close transition. Within acceptable bounds.
+- **Load has 2 transient drops** (out of 297 frames, max 83.4 ms): the post-settle window still catches the tail of gtag init and Smart Slider 3 bootstrap. These are the user-perceptible symptoms of F-12 (TBT) and F-14 (51 sync scripts) — the existing findings cover the root cause; the frame chart here documents the *visible* impact.
+
+**Comparison to AP News** (course project, same methodology, 8 s settle + 5/3/2 s captures): AP News's frame chart shows **0.9 fps effective during load** (8 frames in 5 s, max interval 783 ms) and **1.3 fps during scroll** (4 frames in 3 s, max interval 2,167 ms). MITUR is **40-60× more responsive** in the post-settle phase. The gap is because AP News's third-party scripts (Permutive, Prebid, GTM, Viafoura, webcontentassessor) keep the main thread busy long past the 8 s settle, while MITUR's main thread is free.
+
+**This is direct user-perceptible evidence that the bottleneck on MITUR is *initial-load JS blocking* (TBT / sync scripts), not paint or composite cost.** A fix to F-12 / F-14 will improve the load phase; the scroll and click phases are already healthy.
+
+---
+
+## Layers & animations (homepage)
+
+*Captured 2026-07-24 via `node scripts/coverage-frame-capture.mjs`: DOM walk (`document.querySelectorAll('*')` + `getComputedStyle` for stacking-context detection), CSS rules introspection (`document.styleSheets` walk), and a count of `document.getAnimations()` / `<iframe>` / `<canvas>` / `<video>`.*
+
+| Metric | Value |
+|---|---|
+| **Stacking contexts on the homepage** | **107** |
+| ↳ by `position + z-index` | 85 |
+| ↳ by `transform` | 9 |
+| ↳ by `opacity` | 7 |
+| ↳ by `filter` | 6 |
+| **`will-change` selectors** (forced layer creation) | **7** |
+| **`translate3d` / `transform3d` selectors** (forced compositing) | **2** |
+| `document.getAnimations()` count on first paint | **0** |
+| Animations started on scroll | **4** |
+| `<canvas>` elements | 0 |
+| `<video>` elements on first paint | 0 |
+| `<iframe>` elements | 0 |
+
+**Estimated paint-layer count on the homepage**: ~22 (9 transform + 7 opacity + 6 filter compositor triggers). The 85 `position + z-index` stacking contexts are DOM-level only — they do not create GPU layers, just z-axis ordering.
+
+**The 7 `will-change` declarations — full list:**
+
+| Selector | Property | Source |
+|---|---|---|
+| `.wp-block-gallery.has-nested-images figure.wp-block-image figcaption` | `transform` | WordPress block-library (admin CSS bleeding to public) |
+| `.components-popover` | `transform` | WordPress block-editor (admin CSS bleeding to public) |
+| `.block-editor-block-list__insertion-point-indicator` | `transform, opacity` | WordPress block-editor (admin CSS bleeding to public) |
+| `.block-editor-block-list__insertion-point-inserter` | `transform` | WordPress block-editor (admin CSS bleeding to public) |
+| `.block-editor-global-styles__shadow-indicator` | `transform` | WordPress block-editor (admin CSS bleeding to public) |
+| `.block-editor-block-contextual-toolbar .block-editor-block-toolbar` | `transform` | WordPress block-editor (admin CSS bleeding to public) |
+| `.servicios-title a` | `unset` | Theme (effectively a no-op) |
+
+**The 2 `translate3d(0,0,0)` "force the GPU" declarations — full list:**
+
+| Selector | Property | Source |
+|---|---|---|
+| `.n2-ss-slider .n2_ss_video_player .n2_ss_video_player__cover` | `translate3d(0px, 0px, 0px)` | Smart Slider 3 (active plugin) |
+| `.n2-ss-slider .n2-input, .n2-ss-slider .n2-ss-item-counter-counting-div` | `translate3d(0px, 0px, 0px)` | Smart Slider 3 (active plugin) |
+
+**Observations**:
+- **6 of 7 `will-change` declarations are from WordPress block-editor admin CSS** — they ship on the public side because `wp_head()` is shared between admin and public. The 7th (`.servicios-title a  ->  unset`) is a no-op (`will-change: unset` is the default, so the declaration is dead code).
+- **The 2 `translate3d(0,0,0)` declarations are from Smart Slider 3** — this is the Day 8 §1.3 anti-pattern: forcing a compositor layer with a no-op transform. The plugin uses it on the video player cover and the input/counter elements.
+- **Despite 22 compositor layers + 85 stacking contexts + 7 will-change + 2 transform3d, the frame chart shows 60 fps across scroll and click.** The GPU can handle the layer count on modern devices. On a 4-year-old mid-tier Android, the layer budget becomes more constrained (Chromium's soft limit is ~200 layers per page) but MITUR stays well under that.
+- **No animations start on first paint, and 4 start on scroll** (the Smart Slider 3 slide-transition + the menu dropdown reveal). These are CSS `@keyframes` triggered by class changes, not the Web Animations API.
+- **Net: paint cost is healthy**. The frame-chart smoothness is not a fluke — the 22-layer composition is comfortably within the GPU budget. The wasteful patterns (admin CSS shipping to public, no-op `translate3d`) are real but not yet causing user-perceptible issues. Same conclusion as AP News: a layer-cost optimization will not move the needle for MITUR. The bottleneck is main-thread JS, not composite.
+
+---
+
 ## Why every page is poor (one-line summary)
 
 WordPress + 6 plugins (YOAST, Elementor, Smart Slider 3, WordPress Download Manager, photo-contest plugin, theme bundle) ship 2.8 MB of HTML/CSS/JS/imagery on first paint. The headline image doesn't render until 6.6 s, the page shifts 0.382 mid-load, and the browser can't accept input until 11.5 s.

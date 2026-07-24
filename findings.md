@@ -1,10 +1,10 @@
 # Findings
 
-*Seventeen findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. F-11 added in the HW4 cleanup. F-12 + F-13 added in the HW5 mobile pass. F-14 → F-17 added in the HW7 build-analysis pass. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
+*Twenty findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. F-11 added in the HW4 cleanup. F-12 + F-13 added in the HW5 mobile pass. F-14 → F-17 added in the HW7 build-analysis pass. F-18 → F-20 added in the HW8 frame-analysis pass. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
 
-*14 corrective findings (F-01 → F-09, F-12, F-14 → F-17) and 3 good findings (F-10, F-11, F-13). Brief requires at least 6 corrective + 2 good — both met.*
+*17 corrective findings (F-01 → F-09, F-12, F-14 → F-20) and 3 good findings (F-10, F-11, F-13). Brief requires at least 6 corrective + 2 good — both met.*
 
-*Independence check: each finding is independently observable. No two findings primarily contribute to LCP — F-02 is about LCP timing / fetchpriority, F-04 is about image format / total weight (different mechanism, different solution).*
+*Independence check: each finding is independently observable. No two findings primarily contribute to LCP — F-02 is about LCP timing / fetchpriority, F-04 is about image format / total weight (different mechanism, different solution). F-15 and F-18 both address the same root cause (block-editor CSS bleeding to public) but F-15 is the count-level finding (37 stylesheets, page-gate the plugins) and F-18 is the critical-CSS-pipeline finding (no extraction exists, the 16 inline blocks aren't actually above-the-fold rules). F-19 is the user-perceptible evidence for F-12 (TBT) and F-14 (sync scripts) — same root cause, different observation layer.*
 
 *Threshold reference (per Google's CWV bands): LCP good ≤ 2.5 s, CLS good ≤ 0.1, TBT good ≤ 200 ms.*
 
@@ -357,6 +357,92 @@ The next four findings come from `node scripts/build-capture.mjs` (puppeteer + P
   ```
 
 **Expected outcome:** Image transfer on the homepage 1.73 MB → ~1.30 MB (when combined with F-16's responsive images, total image transfer drops to ~400 KB). Expected LCP improvement 200-400 ms on mobile 4G. The fix is purely additive — no images are removed, the same images ship in a smaller format.
+
+---
+
+# Coverage & frames (HW8 — from the frame-analysis pass)
+
+The next three findings come from `node scripts/coverage-frame-capture.mjs` (puppeteer + v8 coverage API + rAF deltas + DOM walk). They cover the three question sets the brief asks for: Coverage, Performance flame chart, and Layers & Animations.
+
+---
+
+## F-18 — No critical-CSS extraction pipeline: 16 inline `<style>` blocks aren't actually above-the-fold rules
+
+**Metric:** Critical-CSS extraction (Y/N), inline CSS size, render-blocking external stylesheets.
+
+**How does this affect users?** Every visitor pays the cost of 37 render-blocking external stylesheets (184 KB) plus 16 inline `<style>` blocks (60 KB) on every pageview. The inline blocks are NOT the result of a critical-CSS pipeline — they're what WordPress's default `wp_head()` call dumps inline, and they contain admin-side styles (`.wp-block-*`, `@media`) that happen to include loose "above-the-fold" markers. **There is no audit-grade critical-CSS extraction on the homepage** — the team is paying the cost of both the inline dump AND the full external stylesheets, with no FCP benefit from the inline rules. FCP is 4.0 s on a Lighthouse run; removing the render-blocking external stylesheet (in favor of `<link rel="preload" as="style">` + onload swap) would drop FCP by an estimated 0.5-1.0 s.
+
+**Cause (confirmed by `document.styleSheets` walk + inline `<style>` count + critical-CSS marker scan):**
+- **16 inline `<style>` blocks** totaling 59,663 bytes.
+- **9 of those 16 blocks** match loose above-the-fold markers (regex: `(\.card-img|header|nav|body\s*\{|html\s*\{|\.site-header|\.navbar|\.hero|wp-block|@media)`).
+- The 9 "matches" are misleading — they're WordPress admin CSS (`.wp-block-*`) and `@media` rules that happen to contain those tokens, not actual above-the-fold rules for the homepage layout.
+- **37 external `<link rel="stylesheet">`** in `<head>`, all render-blocking, totaling 184 KB transfer. Largest: `bootstrap.css` (37 KB), `dashicons.min.css` (35 KB), `style.css` (theme, 14 KB), `block-library` (16 KB).
+- No PurgeCSS, no critical extractor (Penthouse/Critical/cssnano-extract), no `wp_enqueue_style` filter that strips rules-by-selector.
+
+**Solution:**
+- Run **PurgeCSS** against the homepage HTML to produce a single critical CSS file (~30-50 KB, inlined) and a single deferred CSS file (the rest, loaded via `<link rel="preload" as="style">` + onload swap).
+- Drop the inline `<style>` blocks for block-editor admin CSS (the same fix as F-15: `wp_dequeue_style('wp-block-library')` etc.) — those are the worst of the inline dump and they ship on every pageview.
+- After PurgeCSS, move the remaining critical CSS to a build step (a `wp_enqueue_style` with a custom `style_loader_tag` filter that inlines the file's contents when it's below a size threshold).
+
+**Expected outcome:** Render-blocking external stylesheets 37 → 1 (or 0, if all critical CSS is inlined). Inline `<style>` bytes 60 KB → 30-50 KB (after PurgeCSS, only actual above-the-fold rules). Total CSS in `<head>` 244 KB → 50 KB. FCP improvement 0.5-1.0 s on mobile (4.0 s → 3.0-3.5 s).
+
+---
+
+## F-19 — 2 dropped frames in 5s during load are the user-perceptible tail of F-12 (TBT) and F-14 (sync scripts)
+
+**Metric:** Dropped frame count (>25 ms interval), effective fps, max frame interval.
+
+**How does this affect users?** The frame chart shows that MITUR is **60.3 fps during scroll** and **60.4 fps during click** — the page is smooth once the main thread settles. The **load phase has 2 dropped frames in 5 seconds** (max interval 83.4 ms), corresponding to the residual JS settling (gtag init, Smart Slider 3 bootstrap) that continues after the 8-second wait. **These 2 transients are the user-perceptible tail of the F-12 (TBT 1.2 s on mobile amplification) and F-14 (51 sync scripts) problems** — the same root causes, documented here as direct frame-data evidence. Every visitor sees at least 1 dropped frame in the first 5 seconds of viewing the homepage.
+
+**Cause (confirmed by `requestAnimationFrame` deltas, 8 s settle + 5 s load capture):**
+- **Post-settle load (5 s, 297 frames captured)**: avg interval 16.88 ms, **2 dropped frames** (max 83.4 ms). Effective fps: 59.2.
+- **Scroll (3 s, 181 frames)**: 0 dropped, avg 16.59 ms, max 16.8 ms. **Effective fps: 60.3** — perfect.
+- **Click (2 s, 121 frames)**: 1 dropped (33.4 ms), avg 16.55 ms, max 33.4 ms. **Effective fps: 60.4** — within acceptable bounds.
+- The 2 load-phase drops correspond to gtag init (~16 ms eval after 8s) and Smart Slider 3's `n2-ss-slider` setup (one frame at 83.4 ms). Both are "main-thread JS finishing what F-14 should have deferred."
+
+**Comparison to AP News (course project, same methodology):**
+| Phase | MITUR (post-8s) | AP News (post-8s) |
+|---|---|---|
+| Load (5 s) | 297 frames / 2 dropped / 59.2 fps | 8 frames / 7 dropped / ~1.0 fps |
+| Scroll (3 s) | 181 frames / 0 dropped / 60.3 fps | 4 frames / 3 dropped / ~1.1 fps |
+| Click (2 s) | 121 frames / 1 dropped / 60.4 fps | null (SPA scroll triggered nav) |
+
+MITUR is **40-60× more responsive** than AP News in the post-settle phase. The gap is because AP News's third-party scripts (Permutive, Prebid, GTM, Viafoura, webcontentassessor) keep the main thread busy long past 8 s, while MITUR's main thread is free.
+
+**Solution:** Same as F-12 (drop the 51 sync scripts via page-gate + footer-load) and F-14 (dequeue theme jQuery, drop the 51 sync scripts). The frame chart here doesn't generate a NEW corrective — it documents the user-perceptible impact of the existing F-12 / F-14 findings. After those fixes ship, the load phase drops should drop from 2 to 0.
+
+**Expected outcome:** Load-phase dropped frames 2 → 0. Effective fps 59.2 → 60.0. Mobile TBT 1.2 s → 600-800 ms (per F-12 expected outcome). Scroll and click already at 60 fps; no change there.
+
+---
+
+## F-20 — 6 of 7 `will-change` declarations are WordPress block-editor admin CSS bleeding to public + 2 `translate3d(0,0,0)` from Smart Slider 3
+
+**Metric:** Stacking context count, `will-change` declarations, `translate3d(0,0,0)` forced-compositing patterns, compositor layer count.
+
+**How does this affect users?** Minimal direct user impact today, but the pattern is wasteful. The homepage has **107 stacking contexts** (mostly `position + z-index` from plugins, 85 of 107), **22 compositor layers** (9 transform + 7 opacity + 6 filter triggers), **7 `will-change` declarations** (6 of which are block-editor admin CSS), and **2 `translate3d(0,0,0)` "force the GPU" patterns** (both from Smart Slider 3). The frame chart shows the page still renders at 60 fps (scroll and click), so the GPU is handling the layer count comfortably — but the patterns are the Day 8 §1.3 anti-pattern (forcing compositor layers on elements that don't need them), and they consume GPU memory unnecessarily. On a 4-year-old mid-tier Android the layer budget starts to bite; today, on a modern device, it's invisible.
+
+**Cause (confirmed by `document.styleSheets` CSS-rules walk + DOM walk + computed-style inspection):**
+
+- **6 of 7 `will-change` declarations** are from WordPress block-editor admin CSS:
+  - `.wp-block-gallery.has-nested-images figure.wp-block-image figcaption { will-change: transform }`
+  - `.components-popover { will-change: transform }`
+  - `.block-editor-block-list__insertion-point-indicator { will-change: transform, opacity }`
+  - `.block-editor-block-list__insertion-point-inserter { will-change: transform }`
+  - `.block-editor-global-styles__shadow-indicator { will-change: transform }`
+  - `.block-editor-block-contextual-toolbar .block-editor-block-toolbar { will-change: transform }`
+  - These ship on the public side because `wp_head()` is shared between admin and public (the same root cause as F-15 / F-18).
+- **The 7th `will-change` is `.servicios-title a  ->  unset`** — a no-op (`will-change: unset` is the default, so the declaration is dead code).
+- **Both `translate3d(0,0,0)` declarations are from Smart Slider 3**:
+  - `.n2-ss-slider .n2_ss_video_player .n2_ss_video_player__cover { transform: translate3d(0px, 0px, 0px) }`
+  - `.n2-ss-slider .n2-input, .n2-ss-slider .n2-ss-item-counter-counting-div { transform: translate3d(0px, 0px, 0px) }`
+  - These are the canonical "force the GPU with a no-op transform" hack — the element doesn't actually need to be a compositor layer, but the plugin forces one anyway.
+
+**Solution:**
+- For the 6 block-editor `will-change` declarations: same fix as F-15/F-18 — `wp_dequeue_style('wp-block-library')` and `wp_dequeue_style('wp-block-editor')` for non-admin pages. The selectors are dead in the public-DOM context.
+- For the 2 Smart Slider 3 `translate3d(0,0,0)` declarations: open a ticket with the Smart Slider 3 author. The plugin's CSS targets specific selectors that don't exist in the public DOM (the video player cover, the input/counter divs) — these are forced-compositing on elements that are either invisible or have no animation. Removing them would save ~2 GPU layers with zero user impact.
+- The `.servicios-title a  ->  unset` is dead code but harmless; leave it.
+
+**Expected outcome:** Compositor layer count 22 → 16 (after block-editor CSS is dropped). `will-change` declarations 7 → 1 (the no-op theme one). `translate3d(0,0,0)` declarations 2 → 0. GPU memory saved: ~6-8 MB. Frame chart unchanged at 60 fps. The fix is "good housekeeping" — these patterns aren't user-perceptible today but they cost memory and they signal to the next plugin author that "this is how we do things," which propagates the anti-pattern.
 
 ---
 
