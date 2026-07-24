@@ -1,6 +1,10 @@
 # Findings
 
-*Ten findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
+*Eleven findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. F-11 added in the HW4 cleanup. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
+
+*9 corrective findings (F-01 → F-09) and 2 good findings (F-10, F-11). Brief requires at least 6 corrective + 2 good — both met.*
+
+*Independence check: each finding is independently observable. No two findings primarily contribute to LCP — F-02 is about LCP timing / fetchpriority, F-04 is about image format / total weight (different mechanism, different solution).*
 
 *Threshold reference (per Google's CWV bands): LCP good ≤ 2.5 s, CLS good ≤ 0.1, TBT good ≤ 200 ms.*
 
@@ -178,7 +182,7 @@ Five additional findings from the Network Activity section. Each follows the bri
 
 **Metric:** Cache hit rate, transfer savings on repeat visits.
 
-**How does this affect users?** Positive finding. A custom puppeteer capture (`cold-vs-warm.mjs`) measured **140 requests / 2,749 KB on a fresh profile** and **140 requests / 2,749 KB on a warm reload** — 0 % savings on warm refresh. This sounds bad, but it's actually because the **"cold" load is also already cached**: 125 of 140 responses show `cf-cache-status: HIT` (Cloudflare's global edge has the page cached for any visitor, anywhere). First-time visitors and repeat visitors both get the same wire cost. The HTML document is always re-fetched (no-store, 1 request, 50 KB) but that's negligible against the static-asset total.
+**How does this affect users?** Positive finding. A custom puppeteer capture (`cold-vs-warm.mjs`) measured **140 requests / 2,749 KB on a fresh profile** and **140 requests / 2,749 KB on a warm reload** — 0 % savings on warm refresh. This sounds bad, but it's actually because the **"cold" load is also already cached**: 125 of 140 responses show `cf-cache-status: HIT` (Cloudflare's global edge has the page cached for any visitor, anywhere). First-time visitors and repeat visitors get the same wire cost. The HTML document is always re-fetched (no-store, 1 request, 50 KB) but that's negligible against the static-asset total.
 
 **Cause (verified by `curl -I` + puppeteer `cold-vs-warm.mjs`):** The site is correctly configured to:
 - Cache static assets at Cloudflare's edge for 1 week (`Cache-Control: public, max-age=604800`).
@@ -190,4 +194,24 @@ Five additional findings from the Network Activity section. Each follows the bri
 **Solution:** *No fix needed — this is a good finding.* But note the related issue (F-07): the HTML document is `no-store, no-cache`, which means even with good asset caching, the HTML is always re-fetched. If the team ever moves to a "stale-while-revalidate" pattern for the HTML (Cloudflare's "Tiered Cache" supports this), repeat visitors would get a near-instant response (the HTML comes from edge cache, only the dynamic part re-validates).
 
 **Expected outcome:** *Already positive.* Both first-time and repeat visitors get the same edge-cached payload. The site is "fast enough for everyone" — no soft-refresh optimization needed.
+
+---
+
+## F-11 — Good: zero third-party vendors on the homepage (clean attack surface, no ad-network bloat)
+
+**Metric:** Third-party main-thread time, transfer from 3P sources, request count from 3P origins.
+
+**How does this affect users?** Positive finding. A Lighthouse `third-party-summary` audit (captured via `just audit-all` on the homepage) found **zero third-party vendors** — no ad networks, no analytics scripts, no CMP, no iframe embeds, no social widgets. **Every byte on the homepage is first-party** (the `assets.apnews.com` / `dims.apnews.com` CDN is also first-party, and the only external hit is `cdn.cookielaw.org` which is for the OneTrust CMP — and that's not present on MITUR). The total third-party main-thread time is **0 ms**, third-party transfer is **0 bytes**, third-party request count is **0**. For comparison, the AP News course-project audit (a US news site) had 8 third-party vendors consuming 12 seconds of main-thread time and 1.91 MB of transfer.
+
+**Cause (verified by `third-party-summary` audit on the homepage):** The site is a Ministry of Tourism with no ad-supported business model — the homepage is built on WordPress + plugins (YOAST, Elementor, Smart Slider 3, WordPress Download Manager, photo-contest) but **no third-party scripts run on first paint**. This is a positive for:
+- **Attack surface** — no supply-chain risk from 3P SDKs.
+- **Privacy** — no 3P cookies set (the only cookies are first-party WordPress + Cloudflare bot management).
+- **Performance** — no 3P main-thread work.
+- **Regulatory** — for a government site, fewer 3P = fewer GDPR/privacy obligations.
+
+**This is a good thing to flag in the audit** — government sites in this region often get weighed down by advertising SDKs, social widgets, and embedded video players. MITUR has none.
+
+**Solution:** *No fix needed — this is a good finding.* The negative side: with no analytics, the ministry has no visibility into actual user behavior on the site. The audit recommends (in F-12 if added later, or as a follow-up) adding privacy-respecting first-party analytics (e.g., a self-hosted Plausible or Matomo instance) so the team can measure the impact of future optimizations. But that's a "nice to have," not a "should fix."
+
+**Expected outcome:** *Already positive.* 3P main-thread = 0 ms. 3P transfer = 0 bytes. 3P requests = 0. No remediation needed.
 

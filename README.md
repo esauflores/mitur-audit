@@ -3,7 +3,7 @@
 **Course:** FE413 — Web Performance
 **Project type:** Personal Project (independent site audit)
 **Audit target:** [Ministerio de Turismo de El Salvador](https://www.mitur.gob.sv/) (MITUR)
-**Status:** HW3 complete — Network Activity section added to baseline.md (142 req / 2.88 MB cold, 51.4% compression, 0 Brotli on HTML, favicon 404, 2×404 + 1×401 errors, 0 third-party). findings.md now has 10 findings total (5 from HW2 + 5 new networking findings).
+**Status:** HW4 complete — Cleanup pass: independence check across 10 findings, added F-11 (good finding: zero third-party vendors) to satisfy the "≥ 6 corrective + 2 good findings" requirement. baseline.md has all the brief's required metrics (CWV + PSI + Network Activity). findings.md now has 11 findings: 9 corrective (F-01..F-09) + 2 good (F-10, F-11).
 
 ---
 
@@ -108,7 +108,7 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 
 - `README.md` — this file (HW1 deliverable)
 - `baseline.md` — CWV + PSI for the homepage (HW2 deliverable)
-- `findings.md` — 10 findings from the homepage baseline (5 from HW2, 5 from HW3 networking)
+- `findings.md` — 11 findings from the homepage baseline (9 corrective + 2 good): F-01..F-05 from HW2 CWV+PSI, F-06..F-10 from HW3 networking, F-11 added in HW4 cleanup
 - `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just clean`
 - `scripts/targets.tsv` — the 8 audited pages (name, url per line)
 - `scripts/cold-vs-warm.mjs` — measure cold-vs-warm transfer for the homepage (Cloudflare cache effectiveness)
