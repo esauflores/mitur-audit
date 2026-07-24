@@ -3,7 +3,7 @@
 **Course:** FE413 — Web Performance
 **Project type:** Personal Project (independent site audit)
 **Audit target:** [Ministerio de Turismo de El Salvador](https://www.mitur.gob.sv/) (MITUR)
-**Status:** HW1 complete — site selection + per-page PSI scores
+**Status:** HW2 complete — baseline.md (CWV + PSI for the homepage: perf 37, LCP 6.6 s, CLS 0.382) + findings.md with 5 findings (CLS from card-img-overlaysv, slow LCP, duplicate jQuery, image weight, CSS round-trips).
 
 ---
 
@@ -107,6 +107,8 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 ## What's in this repo
 
 - `README.md` — this file (HW1 deliverable)
+- `baseline.md` — CWV + PSI for the homepage (HW2 deliverable)
+- `findings.md` — 5 findings from the homepage baseline (HW2 deliverable)
 - `lighthouse/*.json` — raw Lighthouse reports for the 8 audited pages
 
 ## Methodology references
