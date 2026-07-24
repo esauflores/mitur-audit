@@ -40,19 +40,19 @@
 
 ---
 
-## F-03 — Two jQuery versions ship on the same page (~750 ms of redundant script-eval)
+## F-03 — Two jQuery versions ship on the same page (~820 ms of redundant script-eval)
 
 **Metric:** Time to Interactive (TTI), Total Blocking Time (TBT).
 
-**How does this affect users?** Every visitor's browser parses and executes the same jQuery code twice on first paint. That doesn't block the user *visually* (TBT is only 300 ms — modest) but it adds ~750 ms of CPU work that delays Time to Interactive (11.5 s — "poor"). On a mid-tier Android device (the median reader), this is the difference between "page feels ready in 4 s" and "page feels ready in 7 s."
+**How does this affect users?** Every visitor's browser parses and executes the same jQuery code twice on first paint. That doesn't block the user *visually* (TBT is only 300 ms — modest) but it adds ~820 ms of CPU work that delays Time to Interactive (11.5 s — "poor"). On a mid-tier Android device (the median reader), this is the difference between "page feels ready in 4 s" and "page feels ready in 7 s."
 
-**Cause (confirmed by `bootup-time`):** WordPress core bundles jQuery 3.7.1 (`/wp-includes/js/jquery/jquery.min.js?ver=3.7.1`, 677 ms CPU work). The custom theme bundles jQuery 3.3.1 (`/wp-content/themes/instituciones/js/jquery-3.3.1.js?ver=2644`, 142 ms CPU work). Both are loaded as part of first-paint scripts. WordPress jQuery 3.3.1 was deprecated in 2017.
+**Cause (confirmed by `bootup-time`):** WordPress core bundles jQuery 3.7.1 (`/wp-includes/js/jquery/jquery.min.js?ver=3.7.1`, 677 ms CPU work). The custom theme bundles jQuery 3.3.1 (`/wp-content/themes/instituciones/js/jquery-3.3.1.js?ver=2644`, 142 ms CPU work). Both are loaded as part of first-paint scripts. The theme is bundling an outdated copy from 2017 that WordPress core already supplies.
 
 **Solution:**
 - Dequeue the theme's jQuery via `wp_dequeue_script('jquery-3.3.1')` and rely on WordPress core's 3.7.1.
 - Audit other plugins (Elementor, Smart Slider 3, photo-contest) for their own jQuery copies — common WordPress plugin bloat.
 
-**Expected outcome:** ~750 ms less CPU work on first paint. TTI 11.5 s → ~10 s. Cumulative CPU savings as other plugins are dequeued.
+**Expected outcome:** ~820 ms less CPU work on first paint. TTI 11.5 s → ~10 s. Cumulative CPU savings as other plugins are dequeued.
 
 ---
 

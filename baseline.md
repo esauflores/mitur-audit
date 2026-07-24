@@ -44,7 +44,7 @@ Lighthouse overall **Performance score: 37 / 100**. Every Core Web Vital that ma
 | **Font** | 6 | 196 KB | 6.8 % |
 | **Document** | 1 | 50 KB | 1.7 % |
 | Other | 4 | 43 KB | 1.5 % |
-| **Total** | **147** | **2,882 KB** | 100 % |
+| **Total** | **142** | **2,882 KB** | 100 % |
 
 ### Top 8 network payloads
 
