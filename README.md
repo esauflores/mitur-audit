@@ -111,6 +111,7 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 - `findings.md` — 10 findings from the homepage baseline (5 from HW2, 5 from HW3 networking)
 - `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just clean`
 - `scripts/targets.tsv` — the 8 audited pages (name, url per line)
+- `scripts/cold-vs-warm.mjs` — measure cold-vs-warm transfer for the homepage (Cloudflare cache effectiveness)
 - `lighthouse/*.json` — raw Lighthouse reports for the 8 audited pages
 
 ## Methodology references
