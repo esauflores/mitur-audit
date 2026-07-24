@@ -3,7 +3,7 @@
 **Course:** FE413 — Web Performance
 **Project type:** Personal Project (independent site audit)
 **Audit target:** [Ministerio de Turismo de El Salvador](https://www.mitur.gob.sv/) (MITUR)
-**Status:** HW4 complete — Cleanup pass: independence check across 10 findings, added F-11 (good finding: zero third-party vendors) to satisfy the "≥ 6 corrective + 2 good findings" requirement. baseline.md has all the brief's required metrics (CWV + PSI + Network Activity). findings.md now has 11 findings: 9 corrective (F-01..F-09) + 2 good (F-10, F-11).
+**Status:** HW5 complete — Mobile explicitly identified in baseline.md (top header, mobile measurement profile, mobile CWV table, mobile Network Activity section). 2 mobile-specific findings added: F-12 (corrective: TBT 300 ms in Lighthouse capture → ~1.2 s on a real mid-tier Android due to 4× CPU amplification) and F-13 (good: viewport meta tag correctly configured with `width=device-width, initial-scale=1.0, viewport-fit=cover`, plus apple-touch-icon set). findings.md now has 13 findings: 10 corrective (F-01..F-09, F-12) + 3 good (F-10, F-11, F-13).
 
 ---
 
@@ -108,7 +108,7 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 
 - `README.md` — this file (HW1 deliverable)
 - `baseline.md` — CWV + PSI for the homepage (HW2 deliverable)
-- `findings.md` — 11 findings from the homepage baseline (9 corrective + 2 good): F-01..F-05 from HW2 CWV+PSI, F-06..F-10 from HW3 networking, F-11 added in HW4 cleanup
+- `findings.md` — 13 findings from the homepage baseline (10 corrective + 3 good): F-01..F-05 from HW2 CWV+PSI, F-06..F-10 from HW3 networking, F-11 added in HW4 cleanup, F-12 + F-13 added in HW5 mobile pass
 - `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just cold-vs-warm` · `just clean`
 - `scripts/targets.tsv` — the 8 audited pages (name, url per line)
 - `scripts/cold-vs-warm.mjs` — measure cold-vs-warm transfer for the homepage (Cloudflare cache effectiveness)

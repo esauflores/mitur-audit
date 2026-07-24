@@ -1,7 +1,9 @@
-# Baseline — MITUR homepage
+# Baseline — MITUR homepage (mobile)
 
-*Captured: 2026-07-23 (single run, clean-state profile, mobile preset, simulated throttling).*
-*Tool: Lighthouse CLI v12 on headless Chromium 150. Raw report in `lighthouse/homepage.json`.*
+*Captured: 2026-07-23 (single run, clean-state mobile profile, **mobile preset**, **simulated throttling per Day 3 §4.1: Slow 4G + 4× CPU slowdown**).*
+*Tool: Lighthouse CLI v12 on headless Chromium 150, mobile form factor. Raw report in `lighthouse/homepage.json`.*
+
+> **Mobile is the audit's primary target throughout.** All captures use `--form-factor=mobile` and the standard mobile throttling profile (per the brief and per Day 3 §4.1). The audience for a tourism ministry site is dominantly mobile (visitors on cellular data in El Salvador and other Latin American markets), so mobile performance directly affects real-world outcomes.
 
 ---
 
@@ -17,7 +19,7 @@
 
 ---
 
-## Core Web Vitals — homepage
+## Core Web Vitals — homepage (mobile, throttled)
 
 | Vital | Value | "Good" | "Needs improvement" | "Poor" | Verdict |
 | --- | --- | --- | --- | --- | --- |
@@ -28,7 +30,7 @@
 | **Time to Interactive (TTI)** | **11.5 s** | ≤ 3.8 s | 3.8–7.3 s | > 7.3 s | **Poor** (3× over) |
 | **Speed Index** | **8.1 s** | ≤ 3.4 s | 3.4–5.8 s | > 5.8 s | **Poor** (2.4× over) |
 
-Lighthouse overall **Performance score: 37 / 100**. Every Core Web Vital that matters is in the "poor" band.
+Lighthouse mobile performance score: **37 / 100**. Every Core Web Vital that matters is in the "poor" band. Per Day 6 §1, the 4× CPU slowdown models a **mid-tier Android** device (the median reader profile), so the values above reflect what the typical mobile user experiences — not a worst-case desktop-class machine.
 
 ---
 
@@ -88,7 +90,9 @@ Lighthouse overall **Performance score: 37 / 100**. Every Core Web Vital that ma
 
 Captured 2026-07-23 via Lighthouse cold-load capture + direct HTTP header inspection.
 
-### Requests and transfer (cold load)
+### Requests and transfer (cold load, mobile)
+
+**On a mobile device over Slow 4G (1.6 Mbps down / 750 Kbps up / 150 ms RTT):**
 
 | Metric | Value |
 | --- | ---: |

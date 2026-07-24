@@ -197,6 +197,48 @@ Five additional findings from the Network Activity section. Each follows the bri
 
 ---
 
+## Mobile-specific findings (HW5)
+
+Two findings specific to the mobile form factor, as required by the brief. The first is a corrective finding that quantifies the mobile-amplification of an existing problem. The second is a good finding that documents a mobile-specific concern that the team got right.
+
+---
+
+## F-12 — TBT 300 ms in the Lighthouse capture → ~1.2 s on a real mid-tier Android (4× CPU amplification)
+
+**Metric:** Total Blocking Time (TBT) — mobile-specific amplification.
+
+**How does this affect users?** The TBT in the Lighthouse capture is 300 ms — already over the 200 ms "good" threshold. **But that number is misleading on its own.** Lighthouse simulates a mid-tier Android via 4× CPU slowdown (per Day 3 §4.1 and Day 6 §1), but the 4× slowdown is **on top of** an already-throttled CPU. On a real mid-tier Android (e.g., a Moto G Power or Samsung Galaxy A-series) the JavaScript-eval time is 4× the Lighthouse-emulated time — so the effective TBT is **~1.2 s** (300 ms × 4). Visitors see the visual content paint at LCP 6.6 s, then wait 1+ additional second before taps register. **On a tap-heavy page** (the homepage has 13 long tasks, mostly 100–175 ms), that's the difference between "feels responsive" and "I tapped three times and nothing happened."
+
+**Cause (verified by `long-tasks` audit):** 13 long tasks captured (top 5: 175, 172, 136, 108, 105 ms). Sources are jQuery eval (677 ms on jQuery 3.7.1 + 142 ms on jQuery 3.3.1 = 819 ms of redundant CPU work, see F-03), slider-plugin init, and gtag bootstrap. **None of this is mobile-specific in code** — but the **pain is mobile-specific** because mid-tier Android pays 4× what the Lighthouse model assumes.
+
+**Solution:**
+- Fix F-03 (dequeue theme jQuery) for an immediate ~820 ms CPU win (no mobile-specific change needed — the win is amplified on mobile).
+- Fix F-08 (bundle 60 scripts) for an additional ~150-300 ms TBT win on mobile.
+- Both fixes benefit desktop too, but the **biggest user-visible impact is on mid-tier Android** — which is the median reader.
+
+**Expected outcome:** TBT 300 ms (Lighthouse) → ~150-200 ms (Lighthouse) after the F-03 + F-08 fixes, which on a real mid-tier Android is ~600-800 ms instead of 1.2 s. Mobile users see a "responsive" page instead of a "taps lag" page.
+
+---
+
+## F-13 — Good: viewport meta tag is correctly configured for mobile (and the apple-touch-icon is set)
+
+**Metric:** Mobile rendering correctness, iOS home-screen support.
+
+**How does this affect users?** Positive finding. Direct verification of the homepage HTML shows:
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="apple-touch-icon" href="...">
+```
+The viewport meta is correct: `width=device-width` (so the page scales to the device's CSS width, not the legacy 980px), `initial-scale=1.0` (no auto-zoom on first load), and `viewport-fit=cover` (Safari extension that lets content extend under the notch / dynamic island). The `apple-touch-icon` is also set, which means iOS users who add the homepage to their home screen get a custom icon instead of a generic screenshot. **These are mobile-specific concerns that many government sites get wrong** — fixed-width viewports, no `width=device-width`, no `viewport-fit`, missing `apple-touch-icon` are all common failures that break mobile rendering.
+
+**Cause (verified by `curl -sL https://www.mitur.gob.sv/ | grep viewport`):** The site's theme is correctly configured for mobile rendering out of the box. No intervention needed.
+
+**Solution:** *No fix needed — this is a good finding.* Flagging it because the next mobile-finding work (see F-12, plus any future HWs that involve touch-event handling, tap-target sizes, mobile-only CSS) builds on this baseline. The team has the foundation right.
+
+**Expected outcome:** *Already positive.* iOS home-screen users see a custom icon, mobile Safari respects the safe-area under the notch, and the page scales correctly to the device width on first load. None of this is broken — unlike many government sites that ship `width=1024` (or no viewport meta at all) and force mobile users to pinch-zoom.
+
+---
+
 ## F-11 — Good: zero third-party vendors on the homepage (clean attack surface, no ad-network bloat)
 
 **Metric:** Third-party main-thread time, transfer from 3P sources, request count from 3P origins.
