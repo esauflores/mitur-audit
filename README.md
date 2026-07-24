@@ -100,7 +100,7 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 | **In-page loaders** (lazy-load, dynamic widgets) | Homepage (CLS evidence), search (CLS 2.236), contest (CLS 0.359), FAQ (accordion) |
 | **Authentication** | Not applicable — site does not require login for primary content. The WordPress Download Manager may have a download-token flow, but it is not user-visible from the homepage. |
 
-**At least one page scores in the red band** — yes, 5 of 8 pages score < 50 on performance; 4 of 8 score > 0.25 on CLS. The search page is the worst-scoring at perf 34.
+**At least one page scores in the red band** — yes, 6 of 8 pages score < 50 on performance; 6 of 8 score > 0.25 on CLS. The search page is the worst-scoring at perf 34.
 
 ---
 

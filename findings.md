@@ -1,6 +1,6 @@
 # Findings
 
-*Five findings from the homepage baseline. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
+*Ten findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
 
 *Threshold reference (per Google's CWV bands): LCP good ≤ 2.5 s, CLS good ≤ 0.1, TBT good ≤ 200 ms.*
 
@@ -166,7 +166,7 @@ Five additional findings from the Network Activity section. Each follows the bri
 - `wp-json/pum/v1/analytics/` returns 401 — this is the Popup Maker analytics endpoint, which requires authentication. WordPress's default REST API behavior is to return 401 for unauthorized requests to `wp-json` endpoints that need auth.
 
 **Solution:**
-- Deactivate the Popup Maker plugin (or fix the missing CSS file). If the plugin isn't actively used, removing it eliminates both errors and the 660 KB of plugin JS.
+- Deactivate the Popup Maker plugin (or fix the missing CSS file). If the plugin isn't actively used, removing it eliminates both errors and the ~17 KB of Popup Maker JS that ships on every page (see F-08 for the broader plugin-bundling context).
 - If the plugin is needed, fix the CSS reference (re-install the plugin or update it to the latest version).
 - The 401 from `wp-json` is a WordPress behavior, not a bug — but it can be silenced by configuring the endpoint to not require auth for analytics calls (or just accepted as WordPress noise).
 
