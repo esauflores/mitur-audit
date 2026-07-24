@@ -3,7 +3,7 @@
 **Course:** FE413 — Web Performance
 **Project type:** Personal Project (independent site audit)
 **Audit target:** [Ministerio de Turismo de El Salvador](https://www.mitur.gob.sv/) (MITUR)
-**Status:** HW2 complete — baseline.md (CWV + PSI for the homepage: perf 37, LCP 6.6 s, CLS 0.382) + findings.md with 5 findings (CLS from card-img-overlaysv, slow LCP, duplicate jQuery, image weight, CSS round-trips).
+**Status:** HW3 complete — Network Activity section added to baseline.md (142 req / 2.88 MB cold, 51.4% compression, 0 Brotli on HTML, favicon 404, 2×404 + 1×401 errors, 0 third-party). findings.md now has 10 findings total (5 from HW2 + 5 new networking findings).
 
 ---
 
@@ -108,7 +108,7 @@ The brief asks for: *static, dynamic, interactive, in-page loaders, authenticati
 
 - `README.md` — this file (HW1 deliverable)
 - `baseline.md` — CWV + PSI for the homepage (HW2 deliverable)
-- `findings.md` — 5 findings from the homepage baseline (HW2 deliverable)
+- `findings.md` — 10 findings from the homepage baseline (5 from HW2, 5 from HW3 networking)
 - `justfile` — automation: `just audit URL NAME` · `just audit-all` · `just report` · `just clean`
 - `scripts/targets.tsv` — the 8 audited pages (name, url per line)
 - `lighthouse/*.json` — raw Lighthouse reports for the 8 audited pages

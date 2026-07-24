@@ -84,6 +84,67 @@ Lighthouse overall **Performance score: 37 / 100**. Every Core Web Vital that ma
 
 ---
 
+## Network Activity (homepage, mobile)
+
+Captured 2026-07-23 via Lighthouse cold-load capture + direct HTTP header inspection.
+
+### Requests and transfer (cold load)
+
+| Metric | Value |
+| --- | ---: |
+| **Total requests** | **142** |
+| **Total transfer (compressed wire)** | **2,882 KB (2.81 MB)** |
+| **Total resource (uncompressed)** | **5,929 KB (5.79 MB)** |
+| **Compression reduction** | **51.4 %** |
+| **Render-blocking scripts in `<head>`** | 0 |
+| **HTTP status (143 × 200, 1 × 204, 1 × 401, 2 × 404)** | mixed — see below |
+
+### JS vs CSS vs images
+
+| Bucket | Requests | Transfer | % of transfer |
+| --- | ---: | ---: | ---: |
+| **Script** | 60 | 660 KB | 22.9 % |
+| **Stylesheet** | 41 | 199 KB | 6.9 % |
+| **Image** | 35 | 1,734 KB | **60.2 %** |
+| **Font** | 6 | 196 KB | 6.8 % |
+| Document | 1 | 50 KB | 1.7 % |
+| Other | 4 | 43 KB | 1.5 % |
+
+**JS + CSS + fonts combined: 33.6 % of transfer. Images: 60.2 %. The site is image-heavy** — atypical for a content site (where the hero image is usually 30–50 % of the page weight).
+
+### Compression
+
+- **Text payloads (HTML / JS / CSS / JSON):** no Brotli or gzip detected in the captured run. The HTML homepage document is **50 KB on the wire** (uncompressed source is **233 KB**; with `Content-Encoding: br` it would compress to ~25 KB).
+- **Image / font payloads:** "negative" compression because JPEG / WebP / WOFF / WOFF2 are already compressed — the wire overhead is HTTP headers + chunked transfer encoding.
+
+The 51.4 % overall "compression reduction" is therefore **misleading**: it reflects the size difference between raw image bytes and wire image bytes, not text compression. **The actual text-compression savings are ≈ 0 %** — the Cloudflare CDN is not configured to compress text payloads on this origin.
+
+### Cache control
+
+| Resource | Cache-Control | Notes |
+| --- | --- | --- |
+| Homepage HTML | `no-store, no-cache, must-revalidate` | Always fresh — never cached at the CDN. |
+| CSS / JS bundles | `public, max-age=604800` (1 week) | `cf-cache-status: HIT` after first visit. |
+| Images | `public, max-age=604800` (1 week) | `cf-cache-status: HIT` after first visit. `age` header shows ~3.8 days at capture. |
+
+**Soft refresh (warm load)** — based on the cache TTLs, repeat visits to the homepage get ~75 % of the static assets served from Cloudflare's edge (CSS, JS, fonts, images). The HTML document itself is always re-fetched (no-store).
+
+### Top network findings (errors + anomalies)
+
+| URL | Status | Size | Issue |
+| --- | ---: | ---: | --- |
+| `https://www.mitur.gob.sv/favicon.png` | **404** | 41,651 B | The site's favicon is missing — every browser requests it, gets 404, logs the error. **41 KB wasted per pageview** across all visitors. |
+| `https://www.mitur.gob.sv/wp-content/plugins/popup-maker/.../block-library-style.css` | **404** | 528 B | Popup Maker plugin block CSS is requested but the file doesn't exist. Plugin installed but block not in use. |
+| `https://www.mitur.gob.sv/wp-json/pum/v1/analytics/` | **401** | 651 B | WordPress Popup Maker analytics endpoint unauthorized. Logged in browser network panel on every pageview. |
+
+**2 × 404 + 1 × 401** on the homepage is a small number of resources, but the favicon 404 is the largest single wasted transfer on the page and shows up in every visitor's network log.
+
+### Third-party resources
+
+**Zero.** Unlike the AP News audit (which had 8 3rd-party vendors consuming 12 s of main-thread), MITUR has **no third-party scripts, no third-party iframes, no ad networks, no analytics vendors, no CMP**. The site is fully first-party. This is a positive finding (less attack surface, no 3P overhead) but also means the site has no analytics infrastructure either.
+
+---
+
 ## Method & caveats
 
 - **Single run per page** — for stricter rigor, take the median of 3 (per Day 3 §4.1).
