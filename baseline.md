@@ -127,7 +127,7 @@ The 51.4 % overall "compression reduction" is therefore **misleading**: it refle
 | CSS / JS bundles | `public, max-age=604800` (1 week) | `cf-cache-status: HIT` after first visit. |
 | Images | `public, max-age=604800` (1 week) | `cf-cache-status: HIT` after first visit. `age` header shows ~3.8 days at capture. |
 
-**Soft refresh (warm load)** — based on the cache TTLs, repeat visits to the homepage get ~75 % of the static assets served from Cloudflare's edge (CSS, JS, fonts, images). The HTML document itself is always re-fetched (no-store).
+**Soft refresh (warm load)** — measured via a custom puppeteer capture (`cold-vs-warm.mjs`, fresh profile context). Results: **140 requests / 2,749 KB on cold, 140 requests / 2,749 KB on warm — 0 % savings.** This is **not a problem** — it means Cloudflare's global edge cache is so effective that even the "cold" load is mostly served from cache (125 of 140 responses show `cf-cache-status: HIT`). First-time visitors to the homepage get the same wire cost as repeat visitors because the cache is shared globally. The HTML document itself is always re-fetched (no-store, 1 request, 50 KB) but that's negligible against the static-asset total.
 
 ### Top network findings (errors + anomalies)
 

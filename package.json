@@ -1,0 +1,10 @@
+{
+  "name": "mitur-audit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MITUR performance audit — FE413 Personal Project",
+  "devDependencies": {
+    "puppeteer-core": "^25.3.0"
+  }
+}

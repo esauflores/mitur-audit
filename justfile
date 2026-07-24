@@ -87,3 +87,14 @@ report:
 clean:
     rm -rf lighthouse/*.json lighthouse/logs/
     @echo "✓ Cleaned."
+
+# Cold-vs-warm transfer comparison. Captures request count and
+# transfer bytes in two fresh profile contexts to measure Cloudflare
+# edge cache hit rate. Writes /tmp/mitur-cold-vs-warm.json.
+# Output: cold-vs-warm.json is the captured data; the justfile summary
+# below shows the headline numbers.
+[doc("Measure cold-vs-warm transfer (Cloudflare cache effectiveness)")]
+cold-vs-warm:
+    @node cold-vs-warm.mjs
+    @echo ""
+    @node -e 'const r=require("/tmp/mitur-cold-vs-warm.json"); console.log("Cold:", r.cold.requests, "req /", r.cold.transferKB, "KB"); console.log("Warm:", r.warm.requests, "req /", r.warm.transferKB, "KB"); console.log("Cache hit rate (cold):", r.cold.byCfCache); console.log("Cache hit rate (warm):", r.warm.byCfCache);'
