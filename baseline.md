@@ -438,6 +438,64 @@ _Note: the capture happens **8 s after navigation** to let scripts run. The "loa
 
 ---
 
+## Rendering strategies (8 audited pages)
+
+*Captured 2026-07-24 via `node scripts/rendering-strategy.mjs` (puppeteer + Performance API + HTML inspection). For each page, the script captures the initial HTML (before any JS runs), response headers (cache-control, x-powered-by, cf-cache-status, transfer-encoding), and framework markers. Raw data: `/tmp/mitur-rendering-strategy.json`. Recipe: `just rendering-strategy`.*
+
+### Strategy used
+
+**MITUR uses server-side rendering (SSR) via PHP on every audited page, served by WordPress on Hostinger with Cloudflare in front.** All 8 pages return substantial HTML in the initial response (192–245 KB decompressed, 41–49 KB gzipped on the wire), with 5–10 text-indicator matches against Spanish news-page markers (`ministerio`, `turismo`, `noticias`, `descargas`, `preguntas`, etc.). This means the content is server-rendered, not a client-side shell hydrated after JS. The browser sees real content immediately.
+
+| Page | HTML (decompressed) | HTML (gzipped) | Strategy | Cache-Control | cf-cache-status | Cacheable | Frameworks |
+|---|---:|---:|---|---|---|---|---|
+| Homepage | 225 KB | 47.5 KB | SSR (PHP 8.2.30) | `no-store, no-cache, must-revalidate` | **DYNAMIC** | ✓ | WordPress, YOAST SEO, Elementor, Smart Slider 3, Popup Maker, Download Manager |
+| Noticias (`/category/noticias/`) | 206 KB | 43.2 KB | SSR (PHP 8.2.30) | `no-store, no-cache, must-revalidate` | **DYNAMIC** | ✓ | WordPress, YOAST, Elementor, Popup Maker, Download Manager |
+| Article-turismo-2026 | 195 KB | 42.1 KB | SSR (PHP 8.2.30) | `no-store, no-cache, must-revalidate` | **DYNAMIC** | ✓ | WordPress, YOAST, Elementor, Popup Maker, Download Manager |
+| Contest (`/contest/`) | 203 KB | 42.3 KB | SSR (PHP 8.2.30) | `no-store, no-cache, must-revalidate` | **DYNAMIC** | ✓ | WordPress, YOAST, Elementor, Popup Maker, Download Manager |
+| Descargas (`/descargas/`) | 245 KB | 45.3 KB | SSR (PHP 8.2.30) | `no-store, no-cache, must-revalidate` | **DYNAMIC** | ✓ | WordPress, YOAST, Elementor, Popup Maker, Download Manager |
+| FAQ (`/preguntas-frecuentes/`) | 218 KB | 49.0 KB | SSR (PHP 8.2.30) | `no-store, no-cache, must-revalidate` | **DYNAMIC** | ✓ | WordPress, YOAST, Elementor, Popup Maker, Download Manager |
+| Search (`?s=turismo`) | 203 KB | 42.3 KB | SSR (PHP 8.2.30) | `no-store, no-cache, must-revalidate` | **DYNAMIC** | ✗ (query-dependent) | WordPress, YOAST, Elementor, Popup Maker, Download Manager |
+| Acceso-informacion | 192 KB | 41.4 KB | SSR (PHP 8.2.30) | `no-store, no-cache, must-revalidate` | **DYNAMIC** | ✓ | WordPress, YOAST, Elementor, Popup Maker, Download Manager |
+
+**Common headers** (all 8 pages):
+- `server: cloudflare` — Cloudflare CDN in front of origin
+- `x-powered-by: PHP/8.2.30` — WordPress on Hostinger PHP 8.2.30 at origin
+- `content-encoding: gzip` — text compression on (Cloudflare gzip, not Brotli)
+- `cache-control: no-store, no-cache, must-revalidate` — origin PHP tells all caches to skip
+- `cf-cache-status: DYNAMIC` — Cloudflare respects origin's no-store and never caches the HTML
+
+### How this affects users
+
+**Benefits of the WordPress SSR + Cloudflare-CDN strategy:**
+
+1. **Fast initial paint** — the LCP image, headline text, navigation, and footer are present in the initial HTML, so the browser can paint meaningful content immediately. Google's CWV measures FCP and LCP against the initial HTML render, not against JS hydration. The 6.6 s LCP on the homepage is bounded by render-blocking scripts in `<head>` (see F-14), not by SSR cost.
+2. **No flash-of-empty-content** — even on slow networks, the user sees content within ~1 s of the HTML arriving.
+3. **Static-asset CDN cache works** — confirmed by HW3 cold-vs-warm capture: 125 of 140 responses show `cf-cache-status: HIT` on the homepage. CSS, JS, images, and fonts are served from Cloudflare's edge in <100 ms for repeat visitors. The asset side of the stack is correctly cached.
+4. **SEO-friendly** — search engine crawlers (which often don't run JS) see the full article content in the initial HTML. This is critical for a public-sector site where search discoverability matters.
+
+**Trade-offs and costs:**
+
+1. **HTML is never edge-cached** — `cache-control: no-store, no-cache, must-revalidate` from the PHP origin + `cf-cache-status: DYNAMIC` at Cloudflare means **every visitor, including repeat visitors, triggers a fresh PHP render at origin.** This is in stark contrast to the static assets (which are heavily cached) and to AP News's same architecture (7 of 8 pages edge-cached for 1 year). For MITUR's homepage, every pageview costs ~500 ms–2 s of PHP work (WordPress render time with 6+ active plugins), even though the content barely changes between visits.
+2. **Each page generates 192–245 KB of HTML** — WordPress + 5-6 active plugins each emits its own `<script>`, `<style>`, and `<link>` tags inline (the basis for F-14, F-15, F-18, F-20). The actual visible text on the homepage is probably <5 KB; the rest is plugin-emitted markup, schema.org JSON-LD from YOAST, Elementor wrapper divs, and admin toolbars.
+3. **No streaming SSR** — the HTML responses are fully buffered (the entire 192–245 KB arrives in one PHP render, then sent to the browser). Streaming SSR would let the browser begin rendering the above-the-fold content while PHP is still generating the footer, but WordPress's PHP render is not streaming-friendly.
+4. **Brotli not enabled** — Cloudflare is serving gzip, which is ~15% larger than Brotli on text payloads. The opportunity (5–7 KB per page) is small but free with a Cloudflare config toggle.
+5. **No stale-while-revalidate** — even if the HTML were cacheable, there's no SWR fallback. A cache miss on a popular page would still trigger an origin render while serving stale content from edge.
+
+### Is this the right choice for these pages?
+
+| Page type | Current strategy | Best fit | Verdict |
+|---|---|---|---|
+| Homepage | SSR, no cache | SSR + edge cache (1-hr s-maxage) | **Suboptimal** — content updates on a minutes-to-hours cadence, not seconds. Edge caching would cut origin load by 95 %+ for repeat visitors |
+| Section hubs (noticias, descargas, faq) | SSR, no cache | SSR + edge cache | **Suboptimal** — same as homepage, but with even less frequent updates |
+| Single article (article-turismo-2026) | SSR, no cache | SSR + edge cache (1-day s-maxage) | **Suboptimal** — articles don't change once published; safe to edge-cache for the lifetime of the article |
+| Contest (`/contest/`) | SSR, no cache | SSR + edge cache (5-min s-maxage) | **Suboptimal** — vote counts change but not the page structure |
+| Search (`?s=turismo`) | SSR, no cache | SSR (results are query-dependent) | **Right choice** — query parameter is part of the cache key, so edge cache would only help on the exact same query (rare). For popular search terms, edge cache is possible but low-value |
+| Static (acceso-informacion) | SSR, no cache | SSG (static file) or SSR + edge cache | **Suboptimal** — content changes rarely; could be SSG'd with a WordPress static-site generator or even just aggressively edge-cached |
+
+**Summary** — the SSR pattern itself is **the right choice for MITUR** (WordPress is naturally PHP-rendered, and the content is dynamic enough that SSG would be a heavy lift). But the **HTML cache is misconfigured**: every page is set to `no-store, no-cache, must-revalidate` despite being perfectly cacheable (7 of 8 pages). Cloudflare's HTML caching could be enabled with a simple page-rule or Worker, and the static asset side already works that way. The **fundamental issue isn't the rendering strategy — it's the missing edge cache**, which is one config change away from AP News's 1-year CDN TTL pattern.
+
+---
+
 ## Why every page is poor (one-line summary)
 
 WordPress + 6 plugins (YOAST, Elementor, Smart Slider 3, WordPress Download Manager, photo-contest plugin, theme bundle) ship 2.8 MB of HTML/CSS/JS/imagery on first paint. The headline image doesn't render until 6.6 s, the page shifts 0.382 mid-load, and the browser can't accept input until 11.5 s.

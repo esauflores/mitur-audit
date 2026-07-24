@@ -1,9 +1,9 @@
-name<TAB>url
-homepage<TAB>https://www.mitur.gob.sv/
-noticias<TAB>https://www.mitur.gob.sv/category/noticias/
-article-turismo-2026<TAB>https://www.mitur.gob.sv/el-salvador-sera-sede-del-dia-mundial-del-turismo-2026/
-contest<TAB>https://www.mitur.gob.sv/contest/
-descargas<TAB>https://www.mitur.gob.sv/descargas/
-preguntas-frecuentes<TAB>https://www.mitur.gob.sv/preguntas-frecuentes/
-search<TAB>https://www.mitur.gob.sv/?s=turismo
-acceso-informacion<TAB>https://www.mitur.gob.sv/acceso-a-la-informacion-publica/
+name	url
+homepage	https://www.mitur.gob.sv/
+noticias	https://www.mitur.gob.sv/category/noticias/
+article-turismo-2026	https://www.mitur.gob.sv/el-salvador-sera-sede-del-dia-mundial-del-turismo-2026/
+contest	https://www.mitur.gob.sv/contest/
+descargas	https://www.mitur.gob.sv/descargas/
+preguntas-frecuentes	https://www.mitur.gob.sv/preguntas-frecuentes/
+search	https://www.mitur.gob.sv/?s=turismo
+acceso-informacion	https://www.mitur.gob.sv/acceso-a-la-informacion-publica/

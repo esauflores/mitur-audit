@@ -1,10 +1,10 @@
 # Findings
 
-*Twenty findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. F-11 added in the HW4 cleanup. F-12 + F-13 added in the HW5 mobile pass. F-14 → F-17 added in the HW7 build-analysis pass. F-18 → F-20 added in the HW8 frame-analysis pass. Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
+*Twenty-two findings from the homepage baseline. F-01 → F-05 from the HW2 CWV + PSI pass. F-06 → F-10 from the HW3 networking pass. F-11 added in the HW4 cleanup. F-12 + F-13 added in the HW5 mobile pass. F-14 → F-17 added in the HW7 build-analysis pass. F-18 → F-20 added in the HW8 frame-analysis pass. F-21 + F-22 added in the HW9 rendering-strategies pass. F-07 wording corrected in HW9 (was "uncompressed" — actually gzipped; updated to "gzipped but not Brotli"). Each follows the brief's structure: how does this affect users? / which metric? / cause? / solution? Lab evidence only — CrUX field data and WPT filmstrip not captured.*
 
-*17 corrective findings (F-01 → F-09, F-12, F-14 → F-20) and 3 good findings (F-10, F-11, F-13). Brief requires at least 6 corrective + 2 good — both met.*
+*19 corrective findings (F-01 → F-09, F-12, F-14 → F-18, F-21, F-22) and 3 good findings (F-10, F-11, F-13). Brief requires at least 6 corrective + 2 good — both met.*
 
-*Independence check: each finding is independently observable. No two findings primarily contribute to LCP — F-02 is about LCP timing / fetchpriority, F-04 is about image format / total weight (different mechanism, different solution). F-15 and F-18 both address the same root cause (block-editor CSS bleeding to public) but F-15 is the count-level finding (37 stylesheets, page-gate the plugins) and F-18 is the critical-CSS-pipeline finding (no extraction exists, the 16 inline blocks aren't actually above-the-fold rules). F-19 is the user-perceptible evidence for F-12 (TBT) and F-14 (sync scripts) — same root cause, different observation layer.*
+*Independence check: each finding is independently observable. No two findings primarily contribute to LCP — F-02 is about LCP timing / fetchpriority, F-04 is about image format / total weight (different mechanism, different solution). F-15 and F-18 both address the same root cause (block-editor CSS bleeding to public) but F-15 is the count-level finding (37 stylesheets, page-gate the plugins) and F-18 is the critical-CSS-pipeline finding (no extraction exists, the 16 inline blocks aren't actually above-the-fold rules). F-19 is the user-perceptible evidence for F-12 (TBT) and F-14 (sync scripts) — same root cause, different observation layer. F-21 (HTML never edge-cached) is the origin-side complement to F-14/F-15 (browser-side plugin bloat).*
 
 *Threshold reference (per Google's CWV bands): LCP good ≤ 2.5 s, CLS good ≤ 0.1, TBT good ≤ 200 ms.*
 
@@ -125,20 +125,20 @@ Five additional findings from the Network Activity section. Each follows the bri
 
 ---
 
-## F-07 — HTML page is sent uncompressed (no Brotli / no gzip on the document)
+## F-07 — HTML page is gzipped but not Brotli-compressed (5–7 KB savings per page; small)
 
 **Metric:** Transfer size for the homepage document, indirectly FCP and LCP.
 
-**How does this affect users?** The HTML document is **50 KB compressed on the wire** (49.6 KB). Its uncompressed source is **233 KB** — meaning Cloudflare is currently serving the page at 21 % of its compressed potential. With `Content-Encoding: br` (Brotli), the same content typically compresses to ~25 KB — a 50 % reduction on top of what we have now. Every visitor on a slow connection (Slow 4G in the lab test = 1.6 Mbps) pays ~150 ms of extra wait time for those 25 KB. **Especially relevant because the homepage has `cache-control: no-store, no-cache` — every visit fetches it fresh, so the bandwidth waste compounds with traffic.**
+**How does this affect users?** The HTML document is **gzipped on the wire** (47.5 KB compressed for the homepage, 233 KB decompressed — 4.9× compression). The original HW2 capture for F-07 was captured at a moment when `Content-Encoding` was missing on the response; in the current configuration the HTML is gzipped correctly (confirmed by re-capture 2026-07-24 across all 8 audited pages). **What remains is the Brotli opportunity**: Cloudflare is serving gzip, but Brotli compresses ~15% better on text payloads. Switching to Brotli would shrink the homepage HTML from 47.5 KB to ~41 KB — saving ~6 KB per pageview. On Slow 4G (1.6 Mbps), that's ~30 ms of transfer time per pageview. Not transformative, but free with a Cloudflare config toggle.
 
-**Cause (confirmed by `curl -I` + Lighthouse capture):** the homepage response is served without any `Content-Encoding` header. Cloudflare is configured to compress the CSS / JS / image assets, but the HTML document is sent raw. This is a Cloudflare config gap — the "Auto-Minify" or "Brotli" feature for HTML may not be enabled for this origin / path.
+**Cause (confirmed by `curl -I` + `scripts/rendering-strategy.mjs` capture on 2026-07-24):** Cloudflare is configured to compress text content, but the toggle for "Brotli" is off (or the origin's `Vary: Accept-Encoding` doesn't include the right token). The `Content-Encoding` header is `gzip`, not `br`. The Cloudflare dashboard's Speed → Optimization → Content Optimization has a "Brotli" toggle that would switch the encoding.
 
 **Solution:**
-- Enable Cloudflare's "Brotli" compression for HTML content (it's free with any Cloudflare plan).
+- Enable Cloudflare's "Brotli" compression for HTML content (Speed → Optimization → Content Optimization → Brotli = ON). Free with any Cloudflare plan.
 - Verify with `curl -I -H "Accept-Encoding: br" https://www.mitur.gob.sv/` — should return `Content-Encoding: br`.
-- Alternative: enable gzip on the origin (Hostinger in this case) if Cloudflare config is locked.
+- Alternative: enable Brotli on the origin (Hostinger in this case) if Cloudflare config is locked.
 
-**Expected outcome:** HTML transfer 50 KB → ~25 KB. FCP improves by ~150 ms on Slow 4G (the compressed bytes finish transferring earlier). Direct bandwidth savings per pageview.
+**Expected outcome:** HTML transfer 47.5 KB → ~41 KB. FCP improves by ~30 ms on Slow 4G. Marginal but free. Note that this is a *small* corrective — the bigger win is F-21 (edge-cache the HTML so repeat visitors don't re-fetch at all).
 
 ---
 
@@ -443,6 +443,61 @@ MITUR is **40-60× more responsive** than AP News in the post-settle phase. The 
 - The `.servicios-title a  ->  unset` is dead code but harmless; leave it.
 
 **Expected outcome:** Compositor layer count 22 → 16 (after block-editor CSS is dropped). `will-change` declarations 7 → 1 (the no-op theme one). `translate3d(0,0,0)` declarations 2 → 0. GPU memory saved: ~6-8 MB. Frame chart unchanged at 60 fps. The fix is "good housekeeping" — these patterns aren't user-perceptible today but they cost memory and they signal to the next plugin author that "this is how we do things," which propagates the anti-pattern.
+
+---
+
+# Rendering strategies (HW9 — from the rendering-strategy pass)
+
+The next two findings come from `node scripts/rendering-strategy.mjs` (puppeteer + Performance API + HTML inspection). They cover the three question sets the brief asks for: rendering strategy per page, user impact, and whether each page's choice is right.
+
+---
+
+## F-21 — HTML is never edge-cached: every visitor (including repeat visitors) triggers a fresh PHP render at origin
+
+**Metric:** Cache-Control header, cf-cache-status, origin PHP render time per pageview.
+
+**How does this affect users?** The HTML document is **never cached at Cloudflare's edge**. Every one of MITUR's 8 audited pages returns `cache-control: no-store, no-cache, must-revalidate` from the PHP origin and `cf-cache-status: DYNAMIC` at Cloudflare — meaning **every pageview, including repeat visits, triggers a full PHP render at Hostinger**. This is in stark contrast to MITUR's own static assets (125 of 140 homepage responses were `cf-cache-status: HIT` per the HW3 cold-vs-warm capture) and to AP News's same architecture (7 of 8 pages edge-cached for 1 year on the CDN). For a public-sector ministry site where the homepage content updates on a minutes-to-hours cadence, this is a configuration gap that costs origin load on every pageview and adds ~500 ms–2 s of PHP render time to the initial HTML response for visitors who could have been served from edge.
+
+**Cause (confirmed by `node scripts/rendering-strategy.mjs` capture on 2026-07-24):** WordPress's default behavior is to send `no-store, no-cache, must-revalidate` on responses (to prevent stale authenticated content from being cached). Cloudflare respects this and serves HTML as `cf-cache-status: DYNAMIC` (always origin). The team's Cloudflare configuration has Page Rules that cache static assets aggressively (1 week), but no Page Rule that allows HTML caching with appropriate cache keys. AP News achieves 1-year CDN cache on 7 of 8 pages with the same SSR pattern — it's a config choice, not a server limitation.
+
+**Solution:**
+- Create a Cloudflare Page Rule for `mitur.gob.sv/*` that:
+  - Sets **Cache Level = Cache Everything** (overrides the origin's no-store).
+  - Sets **Edge Cache TTL = 1 hour** (HTML changes on a minutes-to-hours cadence, so 1-hour CDN cache is safe).
+  - Sets **Browser Cache TTL = 5 minutes** (so returning visitors within 5 min don't even revalidate).
+  - Uses **Cache Key** that excludes cookies for non-logged-in visitors (so auth cookies don't pollute the cache).
+- For authenticated users (WordPress admin / logged-in editors), use a separate Page Rule that BYPASSES the cache.
+- Alternative: install the official **Cloudflare WordPress plugin** which sets appropriate cache rules per page type automatically. The plugin handles the auth/logged-in case via a separate "Bypass Cache on Cookie" rule.
+- Verify with `curl -I https://www.mitur.gob.sv/` after a fresh visit (cleared cache): should show `cf-cache-status: HIT` on the second visit.
+
+**Expected outcome:** Origin render count for the homepage drops by ~95% (from 100% of pageviews to ~5% for cache misses). Origin PHP render time saved: ~500 ms–2 s per repeat visit (saves the user 0 ms but saves the origin the work). Cache hit rate for HTML: 0% → 95%+. The asset side is already cached at 89% (per HW3); the HTML side will match. For a 100k-pageview/day site, this saves 95k PHP renders/day.
+
+---
+
+## F-22 — WordPress generates 192–245 KB of HTML per page from 5–6 active plugins; visible content is <5 KB
+
+**Metric:** HTML size per page, framework marker count per page, HTML-to-content ratio.
+
+**How does this affect users?** Every MITUR page returns **192–245 KB of HTML** (gzipped: 41–49 KB on the wire). The visible content on the homepage is probably <5 KB of actual article text — the rest is plugin-emitted markup, schema.org JSON-LD from YOAST, Elementor wrapper divs, admin toolbars, and inline `<script>`/`<style>` blocks from the 5-6 active plugins (WordPress, YOAST SEO, Elementor, Smart Slider 3, Popup Maker, Download Manager, all detected on the homepage). Every visitor downloads this 192–245 KB even though the browser only renders a small fraction. **The HTML-to-content ratio is ~40-50× inflated by plugins.** This is the server-side cousin of F-14 (51 sync scripts) and F-15 (37 stylesheets): all three are the same plugin-bloat pattern, observed at different layers (HTML markup vs JavaScript vs CSS).
+
+**Cause (confirmed by HTML inspection via `scripts/rendering-strategy.mjs`):** Each WordPress plugin emits its own DOM nodes and inline resources regardless of whether they're needed on the current page:
+- **WordPress core**: emits the admin toolbar, query strings, comment-reply script, dashicons CSS, and `wp-block-library` + `wp-block-editor` (340 KB at 99.6% unused per F-15) on every pageview.
+- **YOAST SEO**: emits 5–15 KB of schema.org JSON-LD on every page, regardless of whether the page is an article (where it's relevant) or a static page (where it's redundant).
+- **Elementor**: emits 30–60 KB of wrapper divs + inline CSS variables, even on pages that don't use Elementor.
+- **Smart Slider 3** (homepage only): emits 50+ KB of slider markup + 213 KB JS bundle.
+- **Popup Maker**: emits inline stylesheet + 17 KB JS for the popup, on every pageview even though the popup is closed by default.
+- **WordPress Download Manager**: emits CSS for the download-button styling on every page, even on pages without downloads.
+
+**Solution:**
+- **Audit each page's HTML for plugin-by-plugin contributions.** Run `curl -s https://www.mitur.gob.sv/ | grep -c "wp-content/plugins/YOAST"` style probes to see which plugin is emitting the most HTML per page. Page-gate the worst offenders:
+  - Disable YOAST on pages that don't need SEO meta (FAQ, search, error pages).
+  - Disable Elementor on pages built without Elementor (article pages are not built in Elementor).
+  - Disable Popup Maker on pages where the popup isn't relevant (search, downloads).
+  - Disable Download Manager CSS on pages without downloads.
+- **WordPress-level fix**: each plugin's `wp_enqueue_*` call should pass a `$page` parameter to gate loading. The team can also use the "Asset Cleanup" or "Perfmatters" plugin to do this declaratively per page.
+- **Estimated impact**: page-gating could cut HTML from 192–245 KB to ~80–120 KB (50% reduction), with a proportional drop in on-wire gzip size (47 KB → ~25 KB).
+
+**Expected outcome:** HTML decompressed 192–245 KB → 80–120 KB per page. HTML gzipped on wire 41–49 KB → ~25 KB. Combined with F-21 (edge cache), repeat visitors download 25 KB instead of 47 KB AND the origin doesn't have to re-render. FCP improves by 100–200 ms on mobile (the bytes finish transferring earlier). The savings compound with F-21: edge cache hits the smaller HTML.
 
 ---
 

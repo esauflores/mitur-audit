@@ -22,7 +22,7 @@ This file documents a prioritization system applied to all current corrective fi
 
 RICE and WSJF were designed for *roadmap* prioritization across many features. PIE was designed for *CRO / experiment* prioritization, where the unit of work is a single change to a single page. That maps cleanly to a single-page performance audit: each finding is one fix to one page, and the prioritization is about *which fix to ship first*. Reach is degenerate (every fix hits the same homepage audience), and Cost-of-Decay is irrelevant (the page doesn't get worse over time — it just stays slow).
 
-## 17 corrective findings, PIE-scored
+## 19 corrective findings, PIE-scored
 
 Sorted by score, descending. **Good findings (F-10, F-11, F-13) are not PIE-scored** — they document what's already working; there's nothing to ship.
 
@@ -30,21 +30,25 @@ Sorted by score, descending. **Good findings (F-10, F-11, F-13) are not PIE-scor
 | ---: | --- | ---: | ---: | ---: | ---: | --- |
 | 1 | **F-12** — TBT 300 ms × 4 = ~1.2 s on a real mid-tier Android (4× CPU amplification) | 9 | 8 | 7 | **504** | Phase 1 |
 | 1 | **F-01** — Homepage CLS 0.382 (3.8× the "good" threshold) | 9 | 8 | 7 | **504** | Phase 1 |
-| 3 | **F-02** — LCP 6.6 s (2.6× the "good" threshold) | 10 | 9 | 5 | **450** | Phase 1 |
-| 4 | **F-03** — Two jQuery versions (~820 ms redundant script-eval) | 7 | 7 | 9 | **441** | Phase 1 |
-| 5 | **F-18** — No critical-CSS extraction: 16 inline `<style>` blocks aren't above-the-fold rules; 37 external stylesheets render-block | 8 | 9 | 6 | **432** | Phase 1 |
-| 6 | **F-14** — 51 sync external scripts in `<head>`, including plugins that don't apply to the homepage | 9 | 9 | 5 | **405** | Phase 1 |
-| 7 | **F-15** — 37 stylesheets / 1.15 MB unused CSS, 99.6% of block-editor CSS ships on the public side | 8 | 7 | 7 | **392** | Phase 1 |
-| 8 | **F-07** — HTML page sent uncompressed (50 KB on wire, ~25 KB with br) | 8 | 6 | 8 | **384** | Phase 1 |
+| 3 | **F-21** — HTML never edge-cached: every visitor triggers a fresh PHP render at origin (cf-cache-status: DYNAMIC for all 8 pages) | 9 | 9 | 6 | **486** | Phase 1 |
+| 4 | **F-02** — LCP 6.6 s (2.6× the "good" threshold) | 10 | 9 | 5 | **450** | Phase 1 |
+| 5 | **F-03** — Two jQuery versions (~820 ms redundant script-eval) | 7 | 7 | 9 | **441** | Phase 1 |
+| 6 | **F-18** — No critical-CSS extraction: 16 inline `<style>` blocks aren't above-the-fold rules; 37 external stylesheets render-block | 8 | 9 | 6 | **432** | Phase 1 |
+| 7 | **F-14** — 51 sync external scripts in `<head>`, including plugins that don't apply to the homepage | 9 | 9 | 5 | **405** | Phase 1 |
+| 8 | **F-15** — 37 stylesheets / 1.15 MB unused CSS, 99.6% of block-editor CSS ships on the public side | 8 | 7 | 7 | **392** | Phase 1 |
 | 9 | **F-04** — 1.7 MB of image transfer, no modern format | 8 | 7 | 6 | **336** | Phase 2 |
 | 10 | **F-19** — 2 dropped frames in 5s during load (user-perceptible tail of F-12 + F-14) | 7 | 6 | 7 | **294** | Phase 2 |
 | 11 | **F-16** — 0 of 35 images have `srcset`/`sizes`/`fetchpriority`/`width`/`height` (despite 1.7 MB loading) | 9 | 8 | 4 | **288** | Phase 2 |
-| 12 | **F-08** — 60 script requests (660 KB) — plugins each ship their own bundle | 8 | 7 | 5 | **280** | Phase 2 |
-| 13 | **F-06** — Favicon is missing (404, 41 KB wasted per visit) | 9 | 3 | 10 | **270** | Phase 2 |
-| 14 | **F-17** — AVIF not served despite HTTPS + Cloudflare being capable (~25% additional savings possible) | 7 | 6 | 6 | **252** | Phase 2 |
-| 15 | **F-05** — 33 stylesheets + 41 `<link>` round-trips | 6 | 6 | 4 | **144** | Phase 2 |
-| 16 | **F-09** — 2×404 + 1×401 broken-plugin errors | 7 | 2 | 8 | **112** | Phase 2 |
-| 17 | **F-20** — 6 of 7 `will-change` + 2 `translate3d(0,0,0)` are wasteful Day 8 anti-patterns (paint cost is healthy today) | 4 | 3 | 4 | **48** | Phase 2 |
+| 12 | **F-22** — WordPress generates 192–245 KB of HTML per page from 5–6 active plugins (visible content <5 KB) | 8 | 7 | 5 | **280** | Phase 2 |
+| 13 | **F-08** — 60 script requests (660 KB) — plugins each ship their own bundle | 8 | 7 | 5 | **280** | Phase 2 |
+| 14 | **F-06** — Favicon is missing (404, 41 KB wasted per visit) | 9 | 3 | 10 | **270** | Phase 2 |
+| 15 | **F-17** — AVIF not served despite HTTPS + Cloudflare being capable (~25% additional savings possible) | 7 | 6 | 6 | **252** | Phase 2 |
+| 16 | **F-05** — 33 stylesheets + 41 `<link>` round-trips | 6 | 6 | 4 | **144** | Phase 2 |
+| 17 | **F-07** — HTML page is gzipped but not Brotli-compressed (47.5 KB → ~41 KB savings) | 4 | 4 | 9 | **144** | Phase 2 |
+| 18 | **F-09** — 2×404 + 1×401 broken-plugin errors | 7 | 2 | 8 | **112** | Phase 2 |
+| 19 | **F-20** — 6 of 7 `will-change` + 2 `translate3d(0,0,0)` are wasteful Day 8 anti-patterns (paint cost is healthy today) | 4 | 3 | 4 | **48** | Phase 2 |
+
+**Sort note**: rows are sorted by PIE score descending. F-07 was previously at score 384 in the HW7 table; the HW9 rendering-strategies re-capture showed the HTML is *already* gzipped, which is most of the original F-07 win. The remaining opportunity is the Brotli switch, which is much smaller (~6 KB savings per pageview). F-07 drops from Phase 1 to Phase 2.
 
 ### Per-finding scoring rationale (selected)
 
@@ -68,28 +72,30 @@ Eight findings cluster in the upper end of the table. They share a common proper
 
 1. **F-12** (504) — fix the underlying F-03 + F-14, but report as "mobile TBT" for stakeholder visibility
 2. **F-01** (504) — add `width`/`height` to image cards, fix the dynamic back-button injection
-3. **F-02** (450) — AVIF + preload + `fetchpriority` for the LCP image
-4. **F-03** (441) — dequeue theme jQuery
-5. **F-18** (432) — PurgeCSS pipeline + drop block-editor admin CSS inline blocks
-6. **F-14** (405) — page-gate + footer-load all non-critical scripts
-7. **F-15** (392) — `wp_dequeue_style('wp-block-library')` + drop unused Bootstrap CSS
-8. **F-07** (384) — enable Cloudflare Brotli for HTML
+3. **F-21** (486) — create Cloudflare Page Rule to cache HTML at the edge (1-hr edge TTL, 5-min browser TTL, BYPASS on auth cookies)
+4. **F-02** (450) — AVIF + preload + `fetchpriority` for the LCP image
+5. **F-03** (441) — dequeue theme jQuery
+6. **F-18** (432) — PurgeCSS pipeline + drop block-editor admin CSS inline blocks
+7. **F-14** (405) — page-gate + footer-load all non-critical scripts
+8. **F-15** (392) — `wp_dequeue_style('wp-block-library')` + drop unused Bootstrap CSS
 
-**Phase 1 outcome:** CLS 0.382 → ≤ 0.1, LCP 6.6 s → 2.5–3.5 s, TBT 300 ms → 150–200 ms (Lighthouse) / 600–800 ms (real mid-tier Android), favicon 404 → 200, HTML 50 KB → ~25 KB, blocking scripts 51 → ≤ 15, blocking CSS 37 → ≤ 5, image transfer 1.7 MB → 0.4 MB, **load-phase dropped frames 2 → 0**. Estimated impact: 4 of 5 CWV move from "poor" to "needs improvement" or better.
+**Phase 1 outcome:** CLS 0.382 → ≤ 0.1, LCP 6.6 s → 2.5–3.5 s, TBT 300 ms → 150–200 ms (Lighthouse) / 600–800 ms (real mid-tier Android), favicon 404 → 200, HTML 47.5 KB → ~25 KB (with F-21 + F-22), blocking scripts 51 → ≤ 15, blocking CSS 37 → ≤ 5, image transfer 1.7 MB → 0.4 MB, **load-phase dropped frames 2 → 0**, **HTML edge-cache hit rate 0% → 95%+**. Estimated impact: 4 of 5 CWV move from "poor" to "needs improvement" or better; origin PHP render count drops by ~95%.
 
 ### Phase 2 (weeks 2–4) — score 48–336, mid and bottom clusters
 
 - **F-04** (336) — install image-optimization plugin, generate AVIF + WebP variants
 - **F-19** (294) — user-perceptible frame-chart evidence (no new action; verifies F-12/F-14)
 - **F-16** (288) — add theme filter to inject `srcset`/`sizes`/`width`/`height`/`fetchpriority` on every `<img>`
+- **F-22** (280) — page-gate plugins that don't apply per page (HTML side of F-14)
 - **F-08** (280) — install JS-bundling plugin (Autoptimize or similar)
 - **F-06** (270) — upload a real favicon
 - **F-17** (252) — enable Cloudflare Polish + AVIF, or add `<picture>` markup
 - **F-05** (144) — concatenate CSS into a single bundle (or run PurgeCSS — partially covered by F-18)
+- **F-07** (144) — flip the Cloudflare Brotli toggle in dashboard
 - **F-09** (112) — deactivate Popup Maker plugin (eliminates 2×404 + 1×401)
 - **F-20** (48) — open tickets with Smart Slider 3 author about the 2 `translate3d(0,0,0)` declarations; drop the 6 block-editor `will-change` declarations after F-15's `wp_dequeue_style` ships
 
-**Phase 2 outcome:** image transfer 1.7 MB → 0.4 MB (with F-16), script requests 60 → 1, stylesheet round-trips 41 → 1, broken-plugin errors 3 → 0, AVIF served for all large images, load-phase jank tail eliminated.
+**Phase 2 outcome:** image transfer 1.7 MB → 0.4 MB (with F-16), script requests 60 → 1, stylesheet round-trips 41 → 1, broken-plugin errors 3 → 0, AVIF served for all large images, load-phase jank tail eliminated, **HTML size 192–245 KB → 80–120 KB (with F-22)**, **HTML transfer ~47 KB → ~41 KB (with F-07 Brotli)**.
 
 ### Why F-20 ranks last (48)
 
@@ -118,11 +124,11 @@ The AP News audit used RICE + ICE + WSJF triangulation. PIE for MITUR reaches su
 | --- | --- | --- |
 | F-12 TBT on mobile | TBT defer scripts (RICE 100) | Same root cause, mobile framing |
 | F-01 CLS on cards | Donate CLS reserve (RICE 40) | Different mechanism, same family |
+| F-21 HTML never edge-cached | Homepage over-invalidates: 2-min cache TTL (RICE 60) | Same family: cache the HTML at the edge. MITUR has *zero* cache; AP News has 2 min on the homepage + 1 year on the other 7. |
 | F-02 LCP image preload | LCP image pipeline (RICE 33) | Same recommendation |
 | F-18 No critical-CSS pipeline | First-party stylesheet is render-blocking and 100% unused (RICE 70) | Same family: ship less CSS |
 | F-03 Two jQuery | — (AP News had no equivalent) | MITUR-specific |
-| F-14 / F-15 Plugin-bundling / unused CSS | First-party bundle ships page-type-specific code (RICE 80) | Same family: stop shipping code nobody uses |
-| F-07 HTML uncompressed | — (AP News uses br) | MITUR-specific gap |
+| F-14 / F-15 / F-22 Plugin-bundling / unused CSS / HTML bloat | First-party bundle ships page-type-specific code (RICE 80) | Same family: stop shipping code (and HTML) nobody uses |
 | F-19 Dropped-frames in load | Page renders at ~1 fps (RICE 80) | Different root cause, same symptom class (initial-load jank). MITUR is 60 fps post-settle; AP News stays at 1 fps. |
 
 ## Good findings (not PIE-scored)
@@ -133,4 +139,6 @@ These are documented in `findings.md` and flagged as already-working. No shippin
 - **F-11** — Third-party surface is Google-only (4 domains: GTM, GA4, Google Fonts, gstatic) — no ad networks, no social widgets, no CMP, no video embeds
 - **F-13** — Viewport meta correctly configured for mobile (with apple-touch-icon)
 
-Plus the **paint-cost-is-healthy** observation from the frame chart: the page renders at 60 fps across scroll and click despite 22 compositor layers + 85 stacking contexts + 7 will-change + 2 `translate3d(0,0,0)`. This isn't a separate good finding — it's the supporting evidence for "F-19 documents the residual F-12/F-14 jank; F-20's wasteful patterns aren't causing user-perceptible issues."
+Plus the **paint-cost-is-healthy** observation from the frame chart (F-19's supporting evidence): the page renders at 60 fps across scroll and click despite 22 compositor layers + 85 stacking contexts + 7 will-change + 2 `translate3d(0,0,0)`. This isn't a separate good finding — it's the supporting evidence for "F-19 documents the residual F-12/F-14 jank; F-20's wasteful patterns aren't causing user-perceptible issues."
+
+Plus the **rendering-strategy-is-correct** observation: WordPress + PHP SSR is the right call for a content-heavy ministry site. The page type × strategy table in `baseline.md` shows the issue isn't the *choice* of SSR — it's the *configuration* (HTML never cached, F-21). The SSR pattern itself stays.

@@ -113,3 +113,10 @@ build-capture:
 [doc("Coverage + frame chart + layers/animations (HW8 metrics)")]
 coverage-frames:
     @node scripts/coverage-frame-capture.mjs
+
+# Detect the rendering strategy used on each audited page: SSR / CSR / SSG,
+# framework markers in initial HTML, edge-cache status, HTML size.
+# Writes /tmp/mitur-rendering-strategy.json.
+[doc("Rendering strategy detection (HW9: SSR / CSR / edge-cache per page)")]
+rendering-strategy:
+    @node scripts/rendering-strategy.mjs
