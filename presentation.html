@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MITUR Performance Audit · Stakeholder Report</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,300;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              paper: "#f5f4ef",
+              paper2: "#eae9e2",
+              ink: "#14140e",
+              inksoft: "#5a5a50",
+              cobalt: "#1f3a8a",
+              bad: "#b3261e",
+              warn: "#c2410c",
+              ok: "#15803d",
+            },
+            fontFamily: {
+              display: ["Newsreader", "Georgia", "serif"],
+              body: ["Hanken Grotesk", "system-ui", "sans-serif"],
+              mono: ["DM Mono", "ui-monospace", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      html,
+      body,
+      .reveal {
+        background: #f5f4ef;
+        color: #14140e;
+        font-family: "Hanken Grotesk", system-ui, sans-serif;
+      }
+      .reveal em {
+        font-style: italic;
+        color: #1f3a8a;
+      }
+      .section-banner {
+        font-family: "DM Mono", ui-monospace, monospace;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        padding: 0.5rem 1.5rem;
+        border: 1px solid #1f3a8a;
+        color: #1f3a8a;
+        border-radius: 999px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="fixed inset-x-0 bottom-4 z-50 flex items-center justify-between border-t border-ink px-8 font-mono text-xs uppercase tracking-[0.18em] text-ink"
+    >
+      <span id="pageno">01 / 09</span>
+      <span id="sectionlabel">stakeholder report</span>
+      <span>FE413 · audit · 2026</span>
+    </div>
+
+    <div class="reveal">
+      <div class="slides">
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 1 · TITLE                                              -->
+        <!-- ============================================================ -->
+        <section data-section="title">
+          <div class="mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">stakeholder report</span>
+            <h1 class="max-w-3xl font-display text-6xl font-normal leading-[1.05]">
+              Tourists wait <em>6.6 seconds</em> for our homepage.<br>We can fix that in a week.
+            </h1>
+            <div class="flex items-center gap-3 pt-2">
+              <span class="section-banner">performance audit of mitur.gob.sv · july 2026</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 2 · THE BOTTOM LINE                                   -->
+        <!-- ============================================================ -->
+        <section data-section="bottom line">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-8 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">the bottom line</span>
+            <h2 class="font-display text-5xl font-normal leading-tight">
+              Yes. <em>Most wins ship in week one.</em>
+            </h2>
+            <div class="grid w-full grid-cols-3 gap-5 pt-2">
+              <div class="rounded border border-bad bg-paper2 p-6">
+                <div class="font-display text-6xl font-normal text-bad">6 of 8</div>
+                <div class="mt-2 font-mono text-xs uppercase tracking-widest text-inksoft">pages in the "poor" band</div>
+              </div>
+              <div class="rounded border border-bad bg-paper2 p-6">
+                <div class="font-display text-6xl font-normal text-bad">6.6 s</div>
+                <div class="mt-2 font-mono text-xs uppercase tracking-widest text-inksoft">LCP on the homepage</div>
+              </div>
+              <div class="rounded border border-ok bg-paper2 p-6">
+                <div class="font-display text-6xl font-normal text-ok">1 week</div>
+                <div class="mt-2 font-mono text-xs uppercase tracking-widest text-inksoft">to fix the top cluster</div>
+              </div>
+            </div>
+            <p class="max-w-2xl font-body text-lg text-inksoft">
+              Eight fixes ship in week one. All of them are config changes, not code rewrites.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 3 · WHAT IT COSTS THE MINISTRY                         -->
+        <!-- ============================================================ -->
+        <section data-section="cost">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">what it costs the ministry</span>
+            <h2 class="font-display text-5xl font-normal leading-tight">
+              Tourism, citizen services, <em>reputation</em>.
+            </h2>
+            <div class="grid w-full grid-cols-2 gap-5 pt-2 text-left">
+              <div class="rounded border border-ink bg-paper2 p-5">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">tourism</div>
+                <div class="mt-1 font-display text-xl">Visitors give up at 6.7 s</div>
+                <div class="mt-1 text-sm text-inksoft">FAQ and search — the two pages tourists actually use.</div>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-5">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">citizen services</div>
+                <div class="mt-1 font-display text-xl">CLS 0.382 — content shifts mid-load</div>
+                <div class="mt-1 text-sm text-inksoft">On cellular data, the dominant pattern in El Salvador.</div>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-5">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">international</div>
+                <div class="mt-1 font-display text-xl">A "poor" score is visible to anyone</div>
+                <div class="mt-1 text-sm text-inksoft">Foreign press, partner organizations, tourism operators.</div>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-5">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">search ranking</div>
+                <div class="mt-1 font-display text-xl">Slower = ranked below competitors</div>
+                <div class="mt-1 text-sm text-inksoft">Google uses page speed as a mobile-first signal since 2020.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 4 · WHAT WE FOUND                                      -->
+        <!-- ============================================================ -->
+        <section data-section="diagnosis">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">what we found</span>
+            <h2 class="font-display text-7xl font-normal leading-tight">
+              <em>Two decisions</em> made years apart are now blocking performance.
+            </h2>
+            <p class="max-w-3xl font-body text-lg text-inksoft">
+              Five plugins were installed that each ship their own JavaScript and CSS. Cloudflare's HTML cache was never enabled. Both are configuration decisions — and both are reversible.
+            </p>
+            <div class="grid w-full grid-cols-3 gap-5 pt-2">
+              <div class="rounded border border-ink bg-paper2 p-5 text-left">
+                <div class="font-display text-5xl text-cobalt">1.5 MB</div>
+                <div class="mt-2 text-sm text-inksoft">JS downloads but never runs</div>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-5 text-left">
+                <div class="font-display text-5xl text-cobalt">94 %</div>
+                <div class="mt-2 text-sm text-inksoft">CSS bytes ship but never match</div>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-5 text-left">
+                <div class="font-display text-5xl text-cobalt">0 %</div>
+                <div class="mt-2 text-sm text-inksoft">HTML edge-cache hit rate (static assets: 89 %)</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 5 · WHAT'S ALREADY WORKING                            -->
+        <!-- ============================================================ -->
+        <section data-section="what works">
+          <div class="mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">what is already working</span>
+            <h2 class="font-display text-5xl font-normal leading-tight">
+              The team has <em>gotten a lot right</em>.
+            </h2>
+            <ul class="max-w-2xl space-y-3 text-left font-body text-xl text-ink">
+              <li class="flex gap-4"><span class="font-mono text-cobalt">01</span><span><b>Google-only 3P surface</b> — vs AP News's 8 vendors, MITUR has 4 (GTM, GA4, Google Fonts, gstatic).</span></li>
+              <li class="flex gap-4"><span class="font-mono text-cobalt">02</span><span><b>89 % static-asset edge cache</b> — CSS, JS, images, fonts served from Cloudflare's global edge.</span></li>
+              <li class="flex gap-4"><span class="font-mono text-cobalt">03</span><span><b>Cloudflare CDN is in front</b> — the infrastructure to ship fast HTML exists; it just needs a toggle.</span></li>
+              <li class="flex gap-4"><span class="font-mono text-cobalt">04</span><span><b>Audit infrastructure is in place</b> — <code>just audit-all</code> re-runs everything in 30 min, catches regressions before ship.</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 6 · THE FIXES, RANKED                                  -->
+        <!-- ============================================================ -->
+        <section data-section="fixes ranked">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-5 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">the fixes · week one</span>
+            <h2 class="font-display text-5xl font-normal leading-tight">
+              Eight fixes. <em>1 engineer, 1 week.</em>
+            </h2>
+            <div class="w-full rounded border border-ink bg-paper2 p-5 text-left">
+              <div class="font-mono text-xs uppercase tracking-widest text-cobalt">phase 1 · total effort: 1 engineer, 1 week</div>
+              <ol class="mt-3 space-y-1.5 font-body text-base">
+                <li><span class="font-mono text-cobalt">01</span> <b>Cloudflare HTML edge cache</b> <span class="text-inksoft">— 5 min, 1 Page Rule</span></li>
+                <li><span class="font-mono text-cobalt">02</span> <b>Dequeue the second jQuery</b> <span class="text-inksoft">— 5 min, 1 line of PHP</span></li>
+                <li><span class="font-mono text-cobalt">03</span> <b>Defer 51 sync scripts; page-gate per plugin</b> <span class="text-inksoft">— 2 days</span></li>
+                <li><span class="font-mono text-cobalt">04</span> <b>Drop block-editor styles on public pages</b> <span class="text-inksoft">— 15 min, 1 line of PHP per style</span></li>
+                <li><span class="font-mono text-cobalt">05</span> <b>PurgeCSS pipeline</b> <span class="text-inksoft">— 1 day (eliminates 1.15 MB of unused CSS)</span></li>
+                <li><span class="font-mono text-cobalt">06</span> <b>Add width/height to image cards</b> <span class="text-inksoft">— 1 day audit</span></li>
+                <li><span class="font-mono text-cobalt">07</span> <b>LCP fetchpriority + AVIF</b> <span class="text-inksoft">— 1 day</span></li>
+                <li><span class="font-mono text-cobalt">08</span> <b>Per-page plugin page-gating</b> <span class="text-inksoft">— 1 day audit</span></li>
+              </ol>
+            </div>
+            <p class="font-body text-base text-inksoft">
+              <b class="text-ink">No backend rebuild.</b> No business logic touched. No new vendor contracts.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 7 · THE PLAN                                           -->
+        <!-- ============================================================ -->
+        <section data-section="plan">
+          <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">the plan</span>
+            <h2 class="font-display text-5xl font-normal leading-tight">
+              Phase 1 ships in <em>week one</em>.
+            </h2>
+            <div class="grid w-full grid-cols-3 gap-5 pt-2 text-left">
+              <div class="rounded border border-ink bg-paper2 p-5">
+                <div class="font-mono text-[10px] uppercase tracking-widest text-cobalt">phase 1 · week 1</div>
+                <div class="mt-1 font-display text-2xl">Stop the bleed</div>
+                <ul class="mt-3 space-y-1 font-body text-base">
+                  <li>✓ 1 engineer · 1 week</li>
+                  <li>✓ 8 fixes ship</li>
+                  <li>✓ 6 of 8 pages out of "poor" band</li>
+                </ul>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-5">
+                <div class="font-mono text-[10px] uppercase tracking-widest text-cobalt">phase 2 · weeks 2–4</div>
+                <div class="mt-1 font-display text-2xl">Fix the structure</div>
+                <ul class="mt-3 space-y-1 font-body text-base">
+                  <li>✓ 1 engineer · 2 weeks</li>
+                  <li>✓ 11 structural fixes</li>
+                  <li>✓ all 8 pages reach perf &gt; 50</li>
+                </ul>
+              </div>
+              <div class="rounded border border-ink bg-paper2 p-5">
+                <div class="font-mono text-[10px] uppercase tracking-widest text-cobalt">phase 3 · weeks 4+</div>
+                <div class="mt-1 font-display text-2xl">Hold the line</div>
+                <ul class="mt-3 space-y-1 font-body text-base">
+                  <li>✓ Perf budget in CI</li>
+                  <li>✓ Monthly CrUX review</li>
+                  <li>✓ hold perf &gt; 75 long-term</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 8 · WHAT IF WE DO NOTHING                              -->
+        <!-- ============================================================ -->
+        <section data-section="cost of inaction">
+          <div class="mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">cost of inaction</span>
+            <h2 class="font-display text-5xl font-normal leading-tight">
+              If we do nothing, <em>nothing changes</em>.
+            </h2>
+            <ul class="max-w-2xl space-y-3 text-left font-body text-xl text-ink">
+              <li class="flex gap-3"><span class="text-bad">→</span><span><b>6 of 8 pages stay in the red band.</b></span></li>
+              <li class="flex gap-3"><span class="text-bad">→</span><span><b>Search ranking</b> continues to drop relative to faster competitors.</span></li>
+              <li class="flex gap-3"><span class="text-bad">→</span><span><b>Every new feature</b> inherits the 6-second main-thread bottleneck.</span></li>
+            </ul>
+            <p class="max-w-2xl font-body text-base text-inksoft">
+              The fix is bounded — <b class="text-ink">2 engineering weeks</b>. The cost of not fixing is unbounded.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 9 · WHAT WE NEED FROM YOU                              -->
+        <!-- ============================================================ -->
+        <section data-section="ask">
+          <div class="mx-auto flex max-w-4xl flex-col items-center gap-6 text-center">
+            <span class="font-mono text-sm uppercase tracking-[0.28em] text-cobalt">the ask</span>
+            <h1 class="max-w-3xl font-display text-5xl font-normal leading-tight">
+              <em>Do we proceed?</em>
+            </h1>
+            <p class="max-w-2xl font-body text-lg text-inksoft">
+              The work needs three commitments to land. <b class="text-ink">One decision unlocks all three.</b>
+            </p>
+            <div class="grid w-full grid-cols-3 gap-5 pt-2 text-left">
+              <div class="rounded border border-cobalt bg-paper2 p-5">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">1</div>
+                <div class="mt-1 font-display text-xl">A named owner for the Cloudflare Page Rule</div>
+                <div class="mt-2 text-sm text-inksoft">5 minutes. One dashboard toggle.</div>
+              </div>
+              <div class="rounded border border-cobalt bg-paper2 p-5">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">2</div>
+                <div class="mt-1 font-display text-xl">A sign-off on the engineering time</div>
+                <div class="mt-2 text-sm text-inksoft">1 engineer, 2 weeks. Phase 1 + phase 2.</div>
+              </div>
+              <div class="rounded border border-cobalt bg-paper2 p-5">
+                <div class="font-mono text-xs uppercase tracking-widest text-cobalt">3</div>
+                <div class="mt-1 font-display text-xl">Approval to add a perf budget in CI</div>
+                <div class="mt-2 text-sm text-inksoft"><code>just audit-all</code> blocks deploy if perf &lt; 50.</div>
+              </div>
+            </div>
+            <p class="font-mono text-sm uppercase tracking-widest text-cobalt pt-4">
+              github.com/esauflores/mitur-audit
+            </p>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        transition: "fade",
+        controls: true,
+        progress: true,
+        center: true,
+        margin: 0.08,
+        width: 1280,
+        height: 720,
+        plugins: [RevealNotes],
+      });
+
+      const total = Reveal.getTotalSlides();
+      function updateBars() {
+        const i = Reveal.getIndices().h + 1;
+        document.getElementById("pageno").textContent =
+          String(i).padStart(2, "0") + " / " + String(total).padStart(2, "0");
+        const label = Reveal.getCurrentSlide().getAttribute("data-section");
+        if (label) document.getElementById("sectionlabel").textContent = label;
+      }
+      Reveal.on("ready", updateBars);
+      Reveal.on("slidechanged", updateBars);
+    </script>
+  </body>
+</html>

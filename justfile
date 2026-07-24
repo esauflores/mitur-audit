@@ -120,3 +120,74 @@ coverage-frames:
 [doc("Rendering strategy detection (HW9: SSR / CSR / edge-cache per page)")]
 rendering-strategy:
     @node scripts/rendering-strategy.mjs
+
+# Render presentation.html slides → preview/ as PNGs (for sharing in chat /
+# embedding in PRs). Uses headless Chromium with the same MITUR profile.
+[doc("Render presentation.html slides → preview/")]
+present:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    port=9556
+    pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
+    sleep 0.5
+    rm -rf preview && mkdir -p preview
+    /usr/lib/chromium/chromium \
+        --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+        --user-data-dir=/tmp/chromium-mitur \
+        --remote-debugging-port=$port \
+        --window-size=1280,720 about:blank >/dev/null 2>&1 &
+    sleep 2
+    node -e '
+      import("puppeteer-core").then(async ({default: puppeteer}) => {
+        const browser = await puppeteer.connect({browserURL:"http://127.0.0.1:'"$port"'"});
+        const pages = await browser.pages();
+        const page = pages[0];
+        await page.setViewport({width:1280,height:720});
+        await page.goto("file://'"$(pwd)"'/presentation.html",{waitUntil:"networkidle2",timeout:30000});
+        await new Promise(r=>setTimeout(r,2500));
+        const total = await page.evaluate(() => Reveal.getTotalSlides());
+        for (let i=0;i<total;i++) {
+          await page.evaluate(n => Reveal.slide(n), i);
+          await new Promise(r=>setTimeout(r,1500));
+          await page.screenshot({path:"preview/slide-"+String(i+1).padStart(2,"0")+".png"});
+        }
+        await browser.disconnect();
+      });'
+    pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
+    @ls preview/
+
+# Render the Spanish presentation-es.html slides → preview-es/ as PNGs.
+# Same workflow as `present`, separate output directory so both decks
+# can be rendered without overwriting each other.
+[doc("Render presentation-es.html slides → preview-es/ (Spanish deck)")]
+present-es:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    port=9557
+    pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
+    sleep 0.5
+    rm -rf preview-es && mkdir -p preview-es
+    /usr/lib/chromium/chromium \
+        --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+        --user-data-dir=/tmp/chromium-mitur \
+        --remote-debugging-port=$port \
+        --window-size=1280,720 about:blank >/dev/null 2>&1 &
+    sleep 2
+    node -e '
+      import("puppeteer-core").then(async ({default: puppeteer}) => {
+        const browser = await puppeteer.connect({browserURL:"http://127.0.0.1:'"$port"'"});
+        const pages = await browser.pages();
+        const page = pages[0];
+        await page.setViewport({width:1280,height:720});
+        await page.goto("file://'"$(pwd)"'/presentation-es.html",{waitUntil:"networkidle2",timeout:30000});
+        await new Promise(r=>setTimeout(r,2500));
+        const total = await page.evaluate(() => Reveal.getTotalSlides());
+        for (let i=0;i<total;i++) {
+          await page.evaluate(n => Reveal.slide(n), i);
+          await new Promise(r=>setTimeout(r,1500));
+          await page.screenshot({path:"preview-es/slide-"+String(i+1).padStart(2,"0")+".png"});
+        }
+        await browser.disconnect();
+      });'
+    pkill -9 -f "remote-debugging-port=$port" 2>/dev/null || true
+    @ls preview-es/
